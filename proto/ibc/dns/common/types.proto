@@ -1,0 +1,62 @@
+syntax = "proto3";
+package ibc.dns.common;
+
+option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types";
+
+import "gogoproto/gogo.proto";
+
+message LocalDNSID {
+    option (gogoproto.goproto_getters) = false;
+    // the port on which the packet will be sent
+    string source_port = 1 [
+        (gogoproto.moretags) = "yaml:\"source_port\""
+    ];
+    // the channel by which the packet will be sent
+    string source_channel = 2 [
+        (gogoproto.moretags) = "yaml:\"source_channel\""
+    ];
+}
+
+message LocalDomain {
+    option (gogoproto.goproto_getters) = false;
+    string name = 1;
+    LocalDNSID dns_id = 2 [
+        (gogoproto.customname) = "DNSID",
+        (gogoproto.nullable) = false
+    ];
+}
+
+message DomainAssociation {
+    uint32 status = 1;
+    ClientDomain src_client = 2 [
+        (gogoproto.nullable) = false
+    ];
+    ClientDomain dst_client = 3 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message ClientDomain {
+    string domain_name = 1;
+    string client_id = 2;
+}
+
+message LocalChannel {
+    option (gogoproto.goproto_getters) = false;
+    // the port on which the packet will be sent
+    string source_port = 1 [
+        (gogoproto.moretags) = "yaml:\"source_port\""
+    ];
+    // the channel by which the packet will be sent
+    string source_channel = 2 [
+        (gogoproto.moretags) = "yaml:\"source_channel\""
+    ];
+    // identifies the port on the receiving chain.
+    string destination_port = 3 [
+        (gogoproto.moretags) = "yaml:\"destination_port\""
+    ];
+    // identifies the channel end on the receiving chain.
+    string destination_channel = 4 [
+        (gogoproto.moretags) = "yaml:\"destination_channel\""
+    ];
+}

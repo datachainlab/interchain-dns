@@ -15,5 +15,5 @@ Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
   $(find "${dir}" -name '*.proto')
 done
 
-cp -r github.com/datachainlab/cosmos-sdk-interchain-channel-id/* ./
+cp -r github.com/datachainlab/cosmos-sdk-interchain-dns/* ./
 rm -rf github.com

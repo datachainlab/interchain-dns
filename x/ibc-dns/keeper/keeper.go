@@ -4,14 +4,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-channel-id/x/ibc-channelid/types"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
 type Keeper struct {
-	storeKey      sdk.StoreKey
-	portKeeper    types.PortKeeper
-	channelKeeper types.ChannelKeeper
-	scopedKeeper  capability.ScopedKeeper
+	portKeeper   types.PortKeeper
+	scopedKeeper capability.ScopedKeeper
+}
+
+func NewKeeper(portKeeper types.PortKeeper, scopedKeeper capability.ScopedKeeper) Keeper {
+	return Keeper{
+		portKeeper:   portKeeper,
+		scopedKeeper: scopedKeeper,
+	}
 }
 
 // BindPort defines a wrapper function for the ort TPCKeeper's function in

@@ -1,0 +1,47 @@
+syntax = "proto3";
+package ibc.dns.server;
+
+option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types";
+
+import "gogoproto/gogo.proto";
+import "ibc/dns/common/types.proto";
+
+message RegisterDomainPacketData {
+    option (gogoproto.goproto_getters) = false;
+    string domain_name = 1;
+}
+
+message RegisterDomainPacketAcknowledgement {
+    option (gogoproto.goproto_getters) = false;
+    uint32 status = 1;
+    string domain_name = 2;
+}
+
+message DomainAssociationCreatePacketData {
+    option (gogoproto.goproto_getters) = false;
+    ibc.dns.common.ClientDomain src_client = 1 [
+        (gogoproto.nullable) = false
+    ];
+    ibc.dns.common.ClientDomain dst_client = 2 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message DomainAssociationCreatePacketAcknowledgement {
+    option (gogoproto.goproto_getters) = false;
+    uint32 status = 1;
+    string msg    = 2;
+}
+
+message DomainAssociationResultPacketData {
+    option (gogoproto.goproto_getters) = false;
+    uint32 status = 1;
+    ibc.dns.common.LocalDomain counterparty_domain = 2 [
+        (gogoproto.nullable) = false
+    ];
+    string client_id = 3;
+}
+
+message DomainAssociationResultPacketAcknowledgement {
+    option (gogoproto.goproto_getters) = false;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package ibc.dns.server;
+
+option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types";
+
+import "gogoproto/gogo.proto";
+
+message QueryDomainsRequest {}
+
+message QueryDomainsResponse {
+    option (gogoproto.goproto_getters) = false;
+    repeated string domain_names = 1;
+}
