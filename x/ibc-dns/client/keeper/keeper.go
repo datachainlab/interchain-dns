@@ -153,35 +153,26 @@ func (k Keeper) ResolveChannel(ctx sdk.Context, domain types.LocalDomain, portID
 	return c, true
 }
 
-func (k Keeper) setSelfDomainName(ctx sdk.Context, dnsID types.LocalDNSID, domain string) error {
-	if _, found := k.GetSelfDomainName(ctx, dnsID); found {
-		return fmt.Errorf("Domain name is already set")
-	}
-	store := ctx.KVStore(k.storeKey)
-	key := clienttypes.KeySelfDomain(dnsID)
-	store.Set(key, []byte(domain))
-	return nil
-}
-
+// SetDomainChannel sets a channel corresponding with the domain name
 func (k Keeper) SetDomainChannel(ctx sdk.Context, dnsID types.LocalDNSID, domainName string, channel types.LocalChannel) error {
 	c, found := k.channelKeeper.GetChannel(ctx, channel.SourcePort, channel.SourceChannel)
 	if !found {
-		panic("not found")
+		return fmt.Errorf("channel not found: port=%v channel=%v", channel.SourcePort, channel.SourceChannel)
 	}
 	connID := c.ConnectionHops[0]
 	conn, found := k.connectionKeeper.GetConnection(ctx, connID)
 	if !found {
-		panic("not found")
+		return fmt.Errorf("connection not found: connectionID=%v", connID)
 	}
 
 	store := ctx.KVStore(k.storeKey)
 	counterpartyClientID := store.Get(clienttypes.KeyClientDomain(dnsID, domainName))
 	if counterpartyClientID == nil {
-		panic("not found")
+		return fmt.Errorf("clientID not found: dnsID=%v domainName=%v", dnsID.String(), domainName)
 	}
 
 	if string(counterpartyClientID) != conn.Counterparty.ClientID {
-		panic("name mismatch")
+		return fmt.Errorf("clientID mismatch: %v != %v", string(counterpartyClientID), conn.Counterparty.ClientID)
 	}
 
 	bz, err := proto.Marshal(&channel)
@@ -189,6 +180,16 @@ func (k Keeper) SetDomainChannel(ctx sdk.Context, dnsID types.LocalDNSID, domain
 		return err
 	}
 	store.Set(clienttypes.KeyDomainChannel(dnsID, domainName, channel.SourcePort), bz)
+	return nil
+}
+
+func (k Keeper) setSelfDomainName(ctx sdk.Context, dnsID types.LocalDNSID, domain string) error {
+	if _, found := k.GetSelfDomainName(ctx, dnsID); found {
+		return fmt.Errorf("Domain name is already set")
+	}
+	store := ctx.KVStore(k.storeKey)
+	key := clienttypes.KeySelfDomain(dnsID)
+	store.Set(key, []byte(domain))
 	return nil
 }
 
