@@ -21,8 +21,8 @@ const (
 
 var _ types.PacketData = (*RegisterDomainPacketData)(nil)
 
-func NewRegisterDomainPacketData(name string) RegisterDomainPacketData {
-	return RegisterDomainPacketData{DomainName: name}
+func NewRegisterDomainPacketData(name string, metadata []byte) RegisterDomainPacketData {
+	return RegisterDomainPacketData{DomainName: name, Metadata: metadata}
 }
 
 func (p RegisterDomainPacketData) ValidateBasic() error {

@@ -43,8 +43,8 @@ func NewKeeper(
 }
 
 // SendPacketRegisterDomain sends a packet to register a channel name on DNS server
-func (k Keeper) SendPacketRegisterDomain(ctx sdk.Context, name string, sourcePort string, sourceChannel string) (*channel.Packet, error) {
-	data := servertypes.NewRegisterDomainPacketData(name)
+func (k Keeper) SendPacketRegisterDomain(ctx sdk.Context, name string, sourcePort string, sourceChannel string, metadata []byte) (*channel.Packet, error) {
+	data := servertypes.NewRegisterDomainPacketData(name, metadata)
 	c, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
 		return nil, fmt.Errorf("channel not found: port=%v channel=%v", sourcePort, sourceChannel)

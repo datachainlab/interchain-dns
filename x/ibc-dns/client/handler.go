@@ -26,7 +26,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleRegisterDomain(ctx sdk.Context, msg types.MsgRegisterDomain, keeper Keeper) (*sdk.Result, error) {
-	_, err := keeper.SendPacketRegisterDomain(ctx, msg.Domain, msg.SourcePort, msg.SourceChannel)
+	_, err := keeper.SendPacketRegisterDomain(ctx, msg.Domain, msg.SourcePort, msg.SourceChannel, msg.Metadata)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'PacketRegisterChannelDomain': %v", err)
 	}

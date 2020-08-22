@@ -38,7 +38,7 @@ func NewKeeper(
 // ReceivePacketRegisterDomain receives a PacketRegisterDomain to register a new domain record
 func (k Keeper) ReceivePacketRegisterDomain(ctx sdk.Context, packet channel.Packet, data servertypes.RegisterDomainPacketData) error {
 	c := types.NewChannel(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel)
-	return k.registerDomain(ctx, data.DomainName, c)
+	return k.registerDomain(ctx, data.DomainName, c, data.Metadata)
 }
 
 // ReceiveDomainAssociationCreatePacketData receives a DomainAssociationCreatePacketData to associate domain with client
@@ -91,14 +91,17 @@ func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status 
 	if err != nil {
 		return
 	}
-	srcChannel, err := k.ForwardLookupDomain(ctx, srcClientDomain.DomainName)
+	srcDomainInfo, err := k.ForwardLookupDomain(ctx, srcClientDomain.DomainName)
 	if err != nil {
 		return
 	}
-	dstChannel, err := k.ForwardLookupDomain(ctx, dstClientDomain.DomainName)
+	dstDomainInfo, err := k.ForwardLookupDomain(ctx, dstClientDomain.DomainName)
 	if err != nil {
 		return
 	}
+
+	srcChannel := srcDomainInfo.Channel
+	dstChannel := dstDomainInfo.Channel
 
 	toSrcData := servertypes.NewDomainAssociationResultPacketData(
 		status,
@@ -166,21 +169,21 @@ func (k Keeper) GetLocalDNSID(ctx sdk.Context, name string) (*types.LocalDNSID, 
 	if err != nil {
 		return nil, err
 	}
-	return &types.LocalDNSID{SourcePort: c.SourcePort, SourceChannel: c.SourceChannel}, nil
+	return &types.LocalDNSID{SourcePort: c.Channel.SourcePort, SourceChannel: c.Channel.SourceChannel}, nil
 }
 
 // ForwardLookupDomain returns a local channel info corresponding to given name
-func (k Keeper) ForwardLookupDomain(ctx sdk.Context, name string) (*types.LocalChannel, error) {
+func (k Keeper) ForwardLookupDomain(ctx sdk.Context, name string) (*servertypes.DomainInfo, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(servertypes.KeyForwardDomain(name))
 	if bz == nil {
 		return nil, fmt.Errorf("Domain '%v' not found", name)
 	}
-	var c types.LocalChannel
-	if err := proto.Unmarshal(bz, &c); err != nil {
+	var info servertypes.DomainInfo
+	if err := proto.Unmarshal(bz, &info); err != nil {
 		return nil, err
 	}
-	return &c, nil
+	return &info, nil
 }
 
 // ReverseLookupDomain returns a domain name corresponding to given channel info
@@ -209,12 +212,16 @@ func (k Keeper) PacketExecuted(ctx sdk.Context, packet channelexported.PacketI, 
 	return k.channelKeeper.PacketExecuted(ctx, chanCap, packet, acknowledgement)
 }
 
-func (k Keeper) registerDomain(ctx sdk.Context, domain string, channel types.LocalChannel) error {
+func (k Keeper) registerDomain(ctx sdk.Context, domain string, channel types.LocalChannel, metadata []byte) error {
 	store := ctx.KVStore(k.storeKey)
 	if store.Has(servertypes.KeyForwardDomain(domain)) {
 		return fmt.Errorf("Domain name '%v' already exists", domain)
 	}
-	bz, err := proto.Marshal(&channel)
+	info := servertypes.DomainInfo{
+		Metadata: metadata,
+		Channel:  channel,
+	}
+	bz, err := proto.Marshal(&info)
 	if err != nil {
 		return err
 	}

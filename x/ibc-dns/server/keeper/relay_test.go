@@ -65,6 +65,7 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 		app0Name, // already used
 		suite.chA1toD0.Port,
 		suite.chA1toD0.Channel,
+		[]byte("memo"),
 	)
 	require.NoError(err)
 	var data0 dnsservertypes.RegisterDomainPacketData
@@ -422,6 +423,7 @@ func (suite *DNSKeeperTestSuite) registerDomain(app *appContext, name string, sr
 		name,
 		srcci.Port,
 		srcci.Channel,
+		[]byte("memo"),
 	)
 	require.NoError(err)
 	var data0 dnsservertypes.RegisterDomainPacketData
