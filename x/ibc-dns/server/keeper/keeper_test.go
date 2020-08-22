@@ -66,7 +66,7 @@ func (a appContext) Cache() (appContext, func()) {
 	return a, writer
 }
 
-func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string) {
+func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string, skipIfClientExists bool) {
 	actx.app.Commit()
 
 	h := abci.Header{ChainID: actx.ctx.ChainID(), Height: actx.app.LastBlockHeight() + 1}
@@ -80,6 +80,13 @@ func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string) {
 	clientState, err := tendermint.Initialize(clientID, trustingPeriod, ubdPeriod, maxClockDrift, header)
 	if err != nil {
 		panic(err)
+	}
+
+	if skipIfClientExists {
+		_, found := actx.app.IBCKeeper.ClientKeeper.GetClientState(actx.ctx, clientID)
+		if found {
+			return
+		}
 	}
 
 	_, err = actx.app.IBCKeeper.ClientKeeper.CreateClient(actx.ctx, clientState, consensusState)
@@ -160,9 +167,10 @@ func (suite *KeeperTestSuite) createClients(
 	srcapp *appContext,
 	dstClientID string, // clientID of srcapp
 	dstapp *appContext,
+	skipIfClientExists bool,
 ) {
-	suite.createClient(srcapp, srcClientID)
-	suite.createClient(dstapp, dstClientID)
+	suite.createClient(srcapp, srcClientID, skipIfClientExists)
+	suite.createClient(dstapp, dstClientID, skipIfClientExists)
 }
 
 func (suite *KeeperTestSuite) createConnections(
@@ -203,8 +211,10 @@ func (suite *KeeperTestSuite) openChannels(
 	dstConnectionID string, // id of the connection with srcapp
 	dstc ChannelInfo, // dst's channel with srcapp
 	dstapp *appContext,
+
+	skipIfClientExists bool,
 ) {
-	suite.createClients(srcClientID, srcapp, dstClientID, dstapp)
+	suite.createClients(srcClientID, srcapp, dstClientID, dstapp, skipIfClientExists)
 	suite.createConnections(srcClientID, srcConnectionID, srcapp, dstClientID, dstConnectionID, dstapp)
 	suite.createChannels(srcConnectionID, srcapp, srcc, dstConnectionID, dstapp, dstc)
 }
