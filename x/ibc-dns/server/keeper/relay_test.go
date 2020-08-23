@@ -251,6 +251,12 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		exc1, found := suite.app1.app.IBCKeeper.ChannelKeeper.GetChannel(suite.app1.ctx, suite.chA1toA0.Port, suite.chA1toA0.Channel)
 		require.True(found)
 		require.Equal(exc1, c1)
+
+		res, err := suite.dns0.app.DNSServerKeeper.QueryDomains(suite.dns0.ctx)
+		require.NoError(err)
+		require.Equal(2, len(res.Domains))
+		require.Equal(app0Name, res.Domains[0].Name)
+		require.Equal(app1Name, res.Domains[1].Name)
 	}
 
 	/// case1: A client referring to app1 in app0 is frozen, but DNS-ID is not changed ///
@@ -439,9 +445,16 @@ func (suite *DNSKeeperTestSuite) registerDomain(app *appContext, name string, sr
 		name,
 		*p0,
 	))
+
+	dnsID := types.NewLocalDNSID(srcci.Port, srcci.Channel)
+
+	res, err := suite.dns0.app.DNSServerKeeper.QueryDomain(suite.dns0.ctx, servertypes.QueryDomainRequest{Name: name})
+	require.NoError(err)
+	require.Equal(dnsID, res.Domain.DnsId)
+
 	name, found := app.app.DNSClientKeeper.GetSelfDomainName(
 		app.ctx,
-		types.NewLocalDNSID(srcci.Port, srcci.Channel),
+		dnsID,
 	)
 	require.True(found)
 	require.Equal(name, name)

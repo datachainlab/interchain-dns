@@ -47,7 +47,7 @@ message DomainAssociationResultPacketAcknowledgement {
     option (gogoproto.goproto_getters) = false;
 }
 
-message DomainInfo {
+message DomainChannelInfo {
     option (gogoproto.goproto_getters) = false;
     ibc.dns.common.LocalChannel channel = 1 [
         (gogoproto.nullable) = false

@@ -4,10 +4,35 @@ package ibc.dns.server;
 option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types";
 
 import "gogoproto/gogo.proto";
+import "ibc/dns/common/types.proto";
 
 message QueryDomainsRequest {}
 
 message QueryDomainsResponse {
     option (gogoproto.goproto_getters) = false;
-    repeated string domain_names = 1;
+    repeated DomainInfo domains = 1;
+}
+
+message DomainInfo {
+    option (gogoproto.goproto_getters) = false;
+    string name = 1;
+    bytes metadata = 2;
+    ibc.dns.common.LocalDNSID dns_id = 3 [
+        (gogoproto.nullable) = false
+    ];
+    ibc.dns.common.LocalChannel channel = 4 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message QueryDomainRequest {
+    option (gogoproto.goproto_getters) = false;
+    string name = 1;
+}
+
+message QueryDomainResponse {
+    option (gogoproto.goproto_getters) = false;
+    DomainInfo domain = 1 [
+        (gogoproto.nullable) = false
+    ];
 }

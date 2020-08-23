@@ -173,13 +173,13 @@ func (k Keeper) GetLocalDNSID(ctx sdk.Context, name string) (*types.LocalDNSID, 
 }
 
 // ForwardLookupDomain returns a local channel info corresponding to given name
-func (k Keeper) ForwardLookupDomain(ctx sdk.Context, name string) (*servertypes.DomainInfo, error) {
+func (k Keeper) ForwardLookupDomain(ctx sdk.Context, name string) (*servertypes.DomainChannelInfo, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(servertypes.KeyForwardDomain(name))
 	if bz == nil {
 		return nil, fmt.Errorf("Domain '%v' not found", name)
 	}
-	var info servertypes.DomainInfo
+	var info servertypes.DomainChannelInfo
 	if err := proto.Unmarshal(bz, &info); err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (k Keeper) registerDomain(ctx sdk.Context, domain string, channel types.Loc
 	if store.Has(servertypes.KeyForwardDomain(domain)) {
 		return fmt.Errorf("Domain name '%v' already exists", domain)
 	}
-	info := servertypes.DomainInfo{
+	info := servertypes.DomainChannelInfo{
 		Metadata: metadata,
 		Channel:  channel,
 	}
