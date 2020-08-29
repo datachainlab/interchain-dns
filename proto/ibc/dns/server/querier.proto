@@ -10,7 +10,9 @@ message QueryDomainsRequest {}
 
 message QueryDomainsResponse {
     option (gogoproto.goproto_getters) = false;
-    repeated DomainInfo domains = 1;
+    repeated DomainInfo domains = 1 [
+        (gogoproto.nullable) = false
+    ];
 }
 
 message DomainInfo {

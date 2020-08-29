@@ -88,7 +88,7 @@ func (k Keeper) QueryDomains(ctx sdk.Context) (*types.QueryDomainsResponse, erro
 			return nil, err
 		}
 		name := strings.TrimPrefix(string(iter.Key()), string(prefix))
-		res.Domains = append(res.Domains, &types.DomainInfo{
+		res.Domains = append(res.Domains, types.DomainInfo{
 			Name:     name,
 			Metadata: info.Metadata,
 			DnsId:    commontypes.NewLocalDNSID(info.Channel.SourcePort, info.Channel.SourceChannel),
