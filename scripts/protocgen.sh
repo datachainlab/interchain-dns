@@ -13,6 +13,14 @@ for dir in $proto_dirs; do
   --gocosmos_out=plugins=interfacetype+grpc,\
 Mgoogle/protobuf/any.proto=github.com/cosmos/cosmos-sdk/codec/types:. \
   $(find "${dir}" -name '*.proto')
+
+  # command to generate gRPC gateway (*.pb.gw.go in respective modules) files
+  protoc \
+  -I "proto" \
+  -I "third_party/proto" \
+  -I "$cosmos_sdk_dir" \
+  --grpc-gateway_out=logtostderr=true:. \
+  $(find "${dir}" -maxdepth 1 -name '*.proto')
 done
 
 cp -r github.com/datachainlab/cosmos-sdk-interchain-dns/* ./
