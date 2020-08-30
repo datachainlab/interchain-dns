@@ -9,9 +9,9 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-type PacketReceiver func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error)
+type PacketReceiver func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error)
 
-type PacketAcknowledgementReceiver func(ctx sdk.Context, packet channeltypes.Packet, ack PacketAcknowledgement) (*sdk.Result, error)
+type PacketAcknowledgementReceiver func(ctx sdk.Context, packet channeltypes.Packet, ack []byte) (*sdk.Result, error)
 
 var ErrUnknownRequest = errors.New("unknown request error")
 
@@ -44,21 +44,21 @@ func ComposeQuerier(qs ...sdk.Querier) sdk.Querier {
 }
 
 func ComposePacketReceivers(rs ...PacketReceiver) PacketReceiver {
-	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
+	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error) {
 		for _, r := range rs {
-			res, err := r(ctx, packet)
+			res, ack, err := r(ctx, packet)
 			if err == nil {
-				return res, nil
+				return res, ack, nil
 			} else if err != ErrUnknownRequest {
-				return res, err
+				return res, ack, err
 			}
 		}
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
 	}
 }
 
 func ComposePacketAcknowledgementReceivers(rs ...PacketAcknowledgementReceiver) PacketAcknowledgementReceiver {
-	return func(ctx sdk.Context, packet channeltypes.Packet, ack PacketAcknowledgement) (*sdk.Result, error) {
+	return func(ctx sdk.Context, packet channeltypes.Packet, ack []byte) (*sdk.Result, error) {
 		for _, r := range rs {
 			res, err := r(ctx, packet, ack)
 			if err == nil {

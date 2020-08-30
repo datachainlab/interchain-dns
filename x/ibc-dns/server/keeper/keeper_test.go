@@ -13,11 +13,12 @@ import (
 	connectionexported "github.com/cosmos/cosmos-sdk/x/ibc/03-connection/exported"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
 	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
 	tendermint "github.com/cosmos/cosmos-sdk/x/ibc/07-tendermint/types"
 	commitmentexported "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/exported"
 	commitment "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/types"
 	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -27,7 +28,7 @@ import (
 // define constants used for testing
 const (
 	testClientType     = clientexported.Tendermint
-	testChannelOrder   = channelexported.UNORDERED
+	testChannelOrder   = channeltypes.UNORDERED
 	testChannelVersion = "1.0"
 )
 

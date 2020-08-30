@@ -3,7 +3,6 @@ package dns
 import (
 	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
 )
 
 // nolint
@@ -20,10 +19,10 @@ type (
 	PacketAcknowledgementReceiver = commontypes.PacketAcknowledgementReceiver
 	ChannelKeeper                 = commontypes.ChannelKeeper
 	PortKeeper                    = commontypes.PortKeeper
+	GenesisState                  = commontypes.GenesisState
 )
 
 // nolint
 var (
-	NewKeeper     = keeper.NewKeeper
-	RegisterCodec = types.RegisterCodec
+	NewKeeper = keeper.NewKeeper
 )

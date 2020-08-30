@@ -2,21 +2,22 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ModuleCdc is the codec for the module
-var ModuleCdc = codec.New()
-
-func init() {
-	types.RegisterCodec(ModuleCdc)
-	servertypes.RegisterCodec(ModuleCdc)
-	RegisterCodec(ModuleCdc)
+// RegisterInterfaces register the ibc transfer module interfaces to protobuf
+// Any.
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgRegisterDomain{})
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgDomainAssociationCreate{})
 }
 
-// RegisterCodec registers concrete types on the Amino codec
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgRegisterDomain{}, "ibc/dns/client/MsgRegisterDomain", nil)
-	cdc.RegisterConcrete(MsgDomainAssociationCreate{}, "ibc/dns/client/MsgDomainAssociationCreate", nil)
-}
+var (
+	// ModuleCdc references the global x/ibc-transfer module codec. Note, the codec
+	// should ONLY be used in certain instances of tests and for JSON encoding.
+	//
+	// The actual codec used for serialization should be provided to x/ibc-transfer and
+	// defined at the application level.
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+)

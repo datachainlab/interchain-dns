@@ -1,0 +1,7 @@
+syntax = "proto3";
+package ibc.dns.common;
+
+option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types";
+
+// GenesisState defines the ibc-dns genesis state
+message GenesisState{}

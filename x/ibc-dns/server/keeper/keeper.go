@@ -3,12 +3,13 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/capability"
-	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
+	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
-	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 	"github.com/gogo/protobuf/proto"
@@ -17,18 +18,21 @@ import (
 
 // Keeper defines ibc-dns keeper
 type Keeper struct {
+	cdc           codec.BinaryMarshaler
 	storeKey      sdk.StoreKey
 	channelKeeper types.ChannelKeeper
-	scopedKeeper  capability.ScopedKeeper
+	scopedKeeper  capabilitykeeper.ScopedKeeper
 }
 
 // NewKeeper creates a new ibc-dns Keeper
 func NewKeeper(
+	cdc codec.BinaryMarshaler,
 	storeKey sdk.StoreKey,
 	channelKeeper types.ChannelKeeper,
-	scopedKeeper capability.ScopedKeeper,
+	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
+		cdc:           cdc,
 		storeKey:      storeKey,
 		channelKeeper: channelKeeper,
 		scopedKeeper:  scopedKeeper,
@@ -36,13 +40,13 @@ func NewKeeper(
 }
 
 // ReceivePacketRegisterDomain receives a PacketRegisterDomain to register a new domain record
-func (k Keeper) ReceivePacketRegisterDomain(ctx sdk.Context, packet channel.Packet, data servertypes.RegisterDomainPacketData) error {
+func (k Keeper) ReceivePacketRegisterDomain(ctx sdk.Context, packet channeltypes.Packet, data *servertypes.RegisterDomainPacketData) error {
 	c := types.NewChannel(packet.SourcePort, packet.SourceChannel, packet.DestinationPort, packet.DestinationChannel)
 	return k.registerDomain(ctx, data.DomainName, c, data.Metadata)
 }
 
 // ReceiveDomainAssociationCreatePacketData receives a DomainAssociationCreatePacketData to associate domain with client
-func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet channel.Packet, data servertypes.DomainAssociationCreatePacketData) (ack servertypes.DomainAssociationCreatePacketAcknowledgement, completed bool) {
+func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet channeltypes.Packet, data *servertypes.DomainAssociationCreatePacketData) (ack servertypes.DomainAssociationCreatePacketAcknowledgement, completed bool) {
 	// check if counterparty domain exists
 	_, err := k.ForwardLookupDomain(ctx, data.DstClient.DomainName)
 	if err != nil {
@@ -82,7 +86,7 @@ func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet
 }
 
 // CreateDomainAssociationResultPacketData creates a packet 'DomainAssociationResultPacketData'
-func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) (srcPacket *channel.Packet, dstPacket *channel.Packet, err error) {
+func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) (srcPacket *channeltypes.Packet, dstPacket *channeltypes.Packet, err error) {
 	srcLocalDNSID, err := k.GetLocalDNSID(ctx, srcClientDomain.DomainName)
 	if err != nil {
 		return
@@ -196,6 +200,10 @@ func (k Keeper) ReverseLookupDomain(ctx sdk.Context, port, channel string) (stri
 	return string(name), nil
 }
 
+func (k Keeper) Codec() codec.BinaryMarshaler {
+	return k.cdc
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "ibc/dns/server")
@@ -205,9 +213,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // in order to expose it to the cross handler.
 // Keeper retreives channel capability and passes it into channel keeper for authentication
 func (k Keeper) PacketExecuted(ctx sdk.Context, packet channelexported.PacketI, acknowledgement []byte) error {
-	chanCap, ok := k.scopedKeeper.GetCapability(ctx, ibctypes.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel()))
+	chanCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel()))
 	if !ok {
-		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, "channel capability could not be retrieved for packet")
+		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "channel capability could not be retrieved for packet")
 	}
 	return k.channelKeeper.PacketExecuted(ctx, chanCap, packet, acknowledgement)
 }
@@ -286,13 +294,13 @@ func (k Keeper) createPacket(
 	destinationChannel string,
 	timeoutHeight uint64,
 	timeoutTimestamp uint64,
-) (*channel.Packet, error) {
+) (*channeltypes.Packet, error) {
 	// get the next sequence
 	seq, found := k.channelKeeper.GetNextSequenceSend(ctx, sourcePort, sourceChannel)
 	if !found {
-		return nil, channel.ErrSequenceSendNotFound
+		return nil, channeltypes.ErrSequenceSendNotFound
 	}
-	packet := channel.NewPacket(
+	packet := channeltypes.NewPacket(
 		data,
 		seq,
 		sourcePort,
@@ -307,11 +315,11 @@ func (k Keeper) createPacket(
 
 func (k Keeper) sendPacket(
 	ctx sdk.Context,
-	packet *channel.Packet,
+	packet *channeltypes.Packet,
 ) error {
-	channelCap, ok := k.scopedKeeper.GetCapability(ctx, ibctypes.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.SourcePort, packet.SourceChannel))
 	if !ok {
-		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, "module does not own channel capability")
+		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "module does not own channel capability")
 	}
 
 	if err := k.channelKeeper.SendPacket(ctx, channelCap, packet); err != nil {
