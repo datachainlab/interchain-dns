@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
@@ -45,9 +44,9 @@ func handleDomainAssociationCreate(ctx sdk.Context, msg *types.MsgDomainAssociat
 // NewPacketReceiver returns a new PacketReceiver
 func NewPacketReceiver(keeper Keeper) commontypes.PacketReceiver {
 	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error) {
-		var data commontypes.PacketDataI
-		if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), data); err != nil {
-			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
+		data, err := commontypes.DeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData())
+		if err != nil {
+			return nil, nil, err
 		}
 		switch data := data.(type) {
 		case *servertypes.DomainAssociationResultPacketData:
@@ -86,8 +85,8 @@ func handleDomainAssociationResultPacketData(ctx sdk.Context, keeper Keeper, pac
 // NewPacketAcknowledgementReceiver returns a new PacketAcknowledgementReceiver
 func NewPacketAcknowledgementReceiver(keeper Keeper) commontypes.PacketAcknowledgementReceiver {
 	return func(ctx sdk.Context, packet channeltypes.Packet, ack []byte) (*sdk.Result, error) {
-		var ackData commontypes.PacketAcknowledgementI
-		if err := codec.UnmarshalAny(keeper.Codec(), &ackData, ack); err != nil {
+		ackData, err := commontypes.DeserializeJSONPacketAck(servertypes.PacketCdc(), packet.GetData())
+		if err != nil {
 			return nil, err
 		}
 		switch ackData := ackData.(type) {

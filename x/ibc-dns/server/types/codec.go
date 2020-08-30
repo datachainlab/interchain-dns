@@ -1,6 +1,8 @@
 package types
 
 import (
+	"sync"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
@@ -33,4 +35,21 @@ var (
 	// The actual codec used for serialization should be provided to x/ibc-transfer and
 	// defined at the application level.
 	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	PacketCdc = func() func() *codec.ProtoCodec {
+		var once sync.Once
+		var cdc *codec.ProtoCodec
+		return func() *codec.ProtoCodec {
+			once.Do(func() {
+				cdc = setupCodec()
+			})
+			return cdc
+		}
+	}()
 )
+
+func setupCodec() *codec.ProtoCodec {
+	r := codectypes.NewInterfaceRegistry()
+	cdc := codec.NewProtoCodec(r)
+	RegisterInterfaces(r)
+	return cdc
+}

@@ -3,9 +3,11 @@ package types
 import (
 	"errors"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
+	"github.com/gogo/protobuf/proto"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -69,4 +71,70 @@ func ComposePacketAcknowledgementReceivers(rs ...PacketAcknowledgementReceiver) 
 		}
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
 	}
+}
+
+func SerializeJSONPacketData(cdc codec.JSONMarshaler, msg proto.Message) ([]byte, error) {
+	bz, err := MarshalJSONAny(cdc, msg)
+	if err != nil {
+		return nil, err
+	}
+	return sdk.SortJSON(bz)
+}
+
+func DeserializeJSONPacketData(cdc codec.Marshaler, data []byte) (PacketDataI, error) {
+	var pd PacketDataI
+	err := UnmarshalJSONAny(cdc, &pd, data)
+	if err != nil {
+		return nil, err
+	}
+	return pd, nil
+}
+
+func MustSerializeJSONPacketData(cdc codec.JSONMarshaler, msg proto.Message) []byte {
+	bz, err := SerializeJSONPacketData(cdc, msg)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func MustDeserializeJSONPacketData(cdc codec.Marshaler, data []byte) PacketDataI {
+	pd, err := DeserializeJSONPacketData(cdc, data)
+	if err != nil {
+		panic(err)
+	}
+	return pd
+}
+
+func SerializeJSONPacketAck(cdc codec.JSONMarshaler, msg proto.Message) ([]byte, error) {
+	bz, err := MarshalJSONAny(cdc, msg)
+	if err != nil {
+		return nil, err
+	}
+	return sdk.SortJSON(bz)
+}
+
+func DeserializeJSONPacketAck(cdc codec.Marshaler, data []byte) (PacketAcknowledgementI, error) {
+	var pd PacketAcknowledgementI
+	err := UnmarshalJSONAny(cdc, &pd, data)
+	if err != nil {
+		return nil, err
+	}
+	return pd, nil
+}
+
+func MustSerializeJSONPacketAck(cdc codec.JSONMarshaler, msg proto.Message) []byte {
+	bz, err := SerializeJSONPacketAck(cdc, msg)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+func MustDeserializeJSONPacketAck(cdc codec.Marshaler, data []byte) PacketAcknowledgementI {
+	ack, err := DeserializeJSONPacketAck(cdc, data)
+	if err != nil {
+		panic(err)
+	}
+	return ack
 }

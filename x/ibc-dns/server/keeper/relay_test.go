@@ -8,7 +8,7 @@ import (
 	dnsservertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 func TestDNSKeeperTestSuite(t *testing.T) {
@@ -33,9 +33,9 @@ type DNSKeeperTestSuite struct {
 }
 
 func (suite *DNSKeeperTestSuite) SetupTest() {
-	suite.dns0 = suite.createAppWithHeader(abci.Header{ChainID: "dns0"})
-	suite.app0 = suite.createAppWithHeader(abci.Header{ChainID: "app0"})
-	suite.app1 = suite.createAppWithHeader(abci.Header{ChainID: "app1"})
+	suite.dns0 = suite.createAppWithHeader(tmproto.Header{ChainID: "dns0"})
+	suite.app0 = suite.createAppWithHeader(tmproto.Header{ChainID: "app0"})
+	suite.app1 = suite.createAppWithHeader(tmproto.Header{ChainID: "app1"})
 
 	suite.chA0toA1 = ChannelInfo{"testportzeroone", "testchannelzeroone"} // app0 -> app1
 	suite.chA1toA0 = ChannelInfo{"testportonezero", "testchannelonezero"} // app1 -> app0
@@ -68,8 +68,7 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 		[]byte("memo"),
 	)
 	require.NoError(err)
-	var data0 dnsservertypes.RegisterDomainPacketData
-	require.NoError(servertypes.ModuleCdc.UnmarshalJSON(p0.Data, &data0))
+	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
 	require.Error(suite.dns0.app.DNSServerKeeper.ReceivePacketRegisterDomain(
 		suite.dns0.ctx,
 		*p0,
@@ -115,8 +114,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(servertypes.ModuleCdc.UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.app.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.ctx,
 			*packet,
@@ -138,8 +136,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(servertypes.ModuleCdc.UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.app.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.ctx,
 			*packet,
@@ -159,13 +156,12 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		var srcData, dstData servertypes.DomainAssociationResultPacketData
-		servertypes.ModuleCdc.MustUnmarshalJSON(srcPacket.Data, &srcData)
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(suite.app1.chainID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		servertypes.ModuleCdc.MustUnmarshalJSON(dstPacket.Data, &dstData)
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.chainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
@@ -281,8 +277,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(servertypes.ModuleCdc.UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.app.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.ctx,
 			*packet,
@@ -303,8 +298,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(servertypes.ModuleCdc.UnmarshalJSON(packet.Data, &data))
+
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.app.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.ctx,
 			*packet,
@@ -324,13 +319,12 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		var srcData, dstData servertypes.DomainAssociationResultPacketData
-		servertypes.ModuleCdc.MustUnmarshalJSON(srcPacket.Data, &srcData)
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(app1ClientID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		servertypes.ModuleCdc.MustUnmarshalJSON(dstPacket.Data, &dstData)
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.chainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
@@ -432,8 +426,8 @@ func (suite *DNSKeeperTestSuite) registerDomain(app *appContext, name string, sr
 		[]byte("memo"),
 	)
 	require.NoError(err)
-	var data0 dnsservertypes.RegisterDomainPacketData
-	require.NoError(servertypes.ModuleCdc.UnmarshalJSON(p0.Data, &data0))
+
+	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
 	require.NoError(suite.dns0.app.DNSServerKeeper.ReceivePacketRegisterDomain(
 		suite.dns0.ctx,
 		*p0,
