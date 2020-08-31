@@ -48,48 +48,6 @@ func NewAppModuleBasic(flags uint8) AppModuleBasic {
 	return AppModuleBasic{flags: flags}
 }
 
-// // Name returns module name
-// func (AppModuleBasic) Name() string {
-// 	return commontypes.ModuleName
-// }
-
-// // RegisterCodec returns RegisterCodec
-// func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-// 	RegisterCodec(cdc)
-// }
-
-// // DefaultGenesis returns default genesis state
-// func (AppModuleBasic) DefaultGenesis(m codec.JSONMarshaler) json.RawMessage {
-// 	return m.MustMarshalJSON(DefaultGenesisState())
-// }
-
-// // ValidateGenesis checks the Genesis
-// func (AppModuleBasic) ValidateGenesis(m codec.JSONMarshaler, bz json.RawMessage) error {
-// 	var data GenesisState
-// 	err := m.UnmarshalJSON(bz, &data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// Once json successfully marshalled, passes along to genesis.go
-// 	return ValidateGenesis(data)
-// }
-
-// // RegisterRESTRoutes returns rest routes
-// func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-// }
-
-// // GetQueryCmd returns the root query command of this module
-// func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-// 	// return cli.GetQueryCmd(cdc)
-// 	return nil
-// }
-
-// // GetTxCmd returns the root tx command of this module
-// func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-// 	// return cli.GetTxCmd(cdc)
-// 	return nil
-// }
-
 // Name implements AppModuleBasic interface
 func (AppModuleBasic) Name() string {
 	return commontypes.ModuleName
@@ -148,55 +106,6 @@ type AppModule struct {
 	packetReceiver                PacketReceiver
 	packetAcknowledgementReceiver PacketAcknowledgementReceiver
 }
-
-// // Name returns module name
-// func (AppModule) Name() string {
-// 	return ModuleName
-// }
-
-// // RegisterInvariants is empty
-// func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
-
-// // Route returns RouterKey
-// func (am AppModule) Route() string {
-// 	return RouterKey
-// }
-
-// // NewHandler returns new Handler
-// func (am AppModule) NewHandler() sdk.Handler {
-// 	return am.handler
-// }
-
-// // QuerierRoute returns module name
-// func (am AppModule) QuerierRoute() string {
-// 	return ModuleName
-// }
-
-// // NewQuerierHandler returns new Querier
-// func (am AppModule) NewQuerierHandler() sdk.Querier {
-// 	return am.querier
-// }
-
-// // BeginBlock is a callback function
-// func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
-// // EndBlock is a callback function
-// func (am AppModule) EndBlock(sdk.Context, abci.RequestEndBlock) []abci.ValidatorUpdate {
-// 	return []abci.ValidatorUpdate{}
-// }
-
-// // InitGenesis inits genesis
-// func (am AppModule) InitGenesis(ctx sdk.Context, m codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
-// 	var genesisState GenesisState
-// 	m.MustUnmarshalJSON(data, &genesisState)
-// 	return InitGenesis(ctx, am.keeper, genesisState)
-// }
-
-// // ExportGenesis exports genesis
-// func (am AppModule) ExportGenesis(ctx sdk.Context, m codec.JSONMarshaler) json.RawMessage {
-// 	gs := ExportGenesis(ctx, am.keeper)
-// 	return m.MustMarshalJSON(gs)
-// }
 
 // NewAppModule creates a new AppModule Object
 func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
