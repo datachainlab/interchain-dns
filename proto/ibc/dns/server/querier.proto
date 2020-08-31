@@ -4,13 +4,24 @@ package ibc.dns.server;
 option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types";
 
 import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 import "ibc/dns/common/types.proto";
+
+// Query provides defines the gRPC querier service.
+service Query {
+    // DenomTrace queries a denomination trace information.
+    rpc Domains(QueryDomainsRequest) returns (QueryDomainsResponse) {
+      option (google.api.http).get = "/ibc_dns/v1beta1/domains";
+    }
+}
 
 message QueryDomainsRequest {}
 
 message QueryDomainsResponse {
     option (gogoproto.goproto_getters) = false;
-    repeated DomainInfo domains = 1;
+    repeated DomainInfo domains = 1 [
+        (gogoproto.nullable) = false
+    ];
 }
 
 message DomainInfo {

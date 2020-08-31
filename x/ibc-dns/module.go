@@ -92,6 +92,7 @@ type AppModule struct {
 	AppModuleBasic
 	keeper                        Keeper
 	handler                       sdk.Handler
+	querier                       sdk.Querier
 	packetReceiver                PacketReceiver
 	packetAcknowledgementReceiver PacketAcknowledgementReceiver
 }
@@ -101,6 +102,7 @@ func NewAppModule(k Keeper, ck *client.Keeper, sk *server.Keeper) AppModule {
 	var (
 		flags uint8
 		hs    []sdk.Handler
+		qs    []sdk.Querier
 		rs    []PacketReceiver
 		as    []PacketAcknowledgementReceiver
 	)
@@ -111,13 +113,15 @@ func NewAppModule(k Keeper, ck *client.Keeper, sk *server.Keeper) AppModule {
 	}
 	if sk != nil {
 		flags |= flagServer
+		qs = append(qs, server.NewQuerier(*sk))
 		rs = append(rs, server.NewPacketReceiver(*sk))
 		as = append(as, server.NewPacketAcknowledgementReceiver(*sk))
 	}
 	return AppModule{
 		AppModuleBasic:                NewAppModuleBasic(flags),
 		keeper:                        k,
-		handler:                       commontypes.ComposeHandlers(),
+		handler:                       commontypes.ComposeHandlers(hs...),
+		querier:                       commontypes.ComposeQuerier(qs...),
 		packetReceiver:                commontypes.ComposePacketReceivers(rs...),
 		packetAcknowledgementReceiver: commontypes.ComposePacketAcknowledgementReceivers(as...),
 	}
@@ -148,8 +152,7 @@ func (am AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns new Querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	// return NewQuerier(am.keeper)
-	return nil
+	return am.querier
 }
 
 // BeginBlock is a callback function

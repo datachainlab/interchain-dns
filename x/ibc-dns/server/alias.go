@@ -10,6 +10,7 @@ type (
 )
 
 var (
-	StoreKey  = types.StoreKey
-	NewKeeper = keeper.NewKeeper
+	StoreKey   = types.StoreKey
+	NewKeeper  = keeper.NewKeeper
+	NewQuerier = keeper.NewQuerier
 )
