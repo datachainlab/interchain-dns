@@ -3,25 +3,26 @@ package dns
 import (
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/capability"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
-	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
 	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
-	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
+	"github.com/gogo/protobuf/grpc"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
+	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
 )
 
 const (
@@ -72,17 +73,17 @@ func (AppModuleBasic) ValidateGenesis(m codec.JSONMarshaler, bz json.RawMessage)
 }
 
 // RegisterRESTRoutes returns rest routes
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 }
 
 // GetQueryCmd returns the root query command of this module
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+func (AppModuleBasic) GetQueryCmd(clientCtx client.Context) *cobra.Command {
 	// return cli.GetQueryCmd(cdc)
 	return nil
 }
 
 // GetTxCmd returns the root tx command of this module
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func (AppModuleBasic) GetTxCmd(clientCtx client.Context) *cobra.Command {
 	// return cli.GetTxCmd(cdc)
 	return nil
 }
@@ -98,7 +99,7 @@ type AppModule struct {
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k Keeper, ck *client.Keeper, sk *server.Keeper) AppModule {
+func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
 	var (
 		flags uint8
 		hs    []sdk.Handler
@@ -137,8 +138,8 @@ func (AppModule) Name() string {
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // Route returns RouterKey
-func (am AppModule) Route() string {
-	return RouterKey
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(RouterKey, am.handler)
 }
 
 // NewHandler returns new Handler
@@ -177,14 +178,18 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, m codec.JSONMarshaler) json.R
 	return m.MustMarshalJSON(gs)
 }
 
+func (am AppModule) RegisterQueryService(grpc.Server) {
+
+}
+
 // Implement IBCModule callbacks
 func (am AppModule) OnChanOpenInit(
 	ctx sdk.Context,
-	order channelexported.Order,
+	order channeltypes.Order,
 	connectionHops []string,
 	portID string,
 	channelID string,
-	chanCap *capability.Capability,
+	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version string,
 ) error {
@@ -199,7 +204,7 @@ func (am AppModule) OnChanOpenInit(
 	}
 
 	// Claim channel capability passed back by IBC module
-	if err := am.keeper.ClaimCapability(ctx, chanCap, ibctypes.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := am.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, err.Error()+"by cross chanOpenInit")
 	}
 
@@ -208,11 +213,11 @@ func (am AppModule) OnChanOpenInit(
 
 func (am AppModule) OnChanOpenTry(
 	ctx sdk.Context,
-	order channelexported.Order,
+	order channeltypes.Order,
 	connectionHops []string,
 	portID,
 	channelID string,
-	chanCap *capability.Capability,
+	chanCap *capabilitytypes.Capability,
 	counterparty channeltypes.Counterparty,
 	version,
 	counterpartyVersion string,
@@ -232,7 +237,7 @@ func (am AppModule) OnChanOpenTry(
 	}
 
 	// Claim channel capability passed back by IBC module
-	if err := am.keeper.ClaimCapability(ctx, chanCap, ibctypes.ChannelCapabilityPath(portID, channelID)); err != nil {
+	if err := am.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
 		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, err.Error()+"by cross chanOpenTry")
 	}
 
@@ -279,7 +284,7 @@ func (am AppModule) OnChanCloseConfirm(
 func (am AppModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-) (*sdk.Result, error) {
+) (*sdk.Result, []byte, error) {
 	return am.packetReceiver(ctx, packet)
 }
 

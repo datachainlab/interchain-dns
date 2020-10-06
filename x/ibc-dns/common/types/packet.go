@@ -9,7 +9,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-type PacketReceiver func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error)
+type PacketReceiver func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error)
 
 type PacketAcknowledgementReceiver func(ctx sdk.Context, packet channeltypes.Packet, ack PacketAcknowledgement) (*sdk.Result, error)
 
@@ -44,16 +44,16 @@ func ComposeQuerier(qs ...sdk.Querier) sdk.Querier {
 }
 
 func ComposePacketReceivers(rs ...PacketReceiver) PacketReceiver {
-	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
+	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error) {
 		for _, r := range rs {
-			res, err := r(ctx, packet)
+			res, packet, err := r(ctx, packet)
 			if err == nil {
-				return res, nil
+				return res, packet, nil
 			} else if err != ErrUnknownRequest {
-				return res, err
+				return res, packet, err
 			}
 		}
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
+		return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
 	}
 }
 

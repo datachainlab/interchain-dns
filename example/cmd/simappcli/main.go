@@ -8,33 +8,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/client/lcd"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
-	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
-	app "github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
-)
 
-var (
-	cdc      = codecstd.MakeCodec(app.ModuleBasics)
-	appCodec = codecstd.NewAppCodec(cdc)
+	app "github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
 )
-
-func init() {
-	authclient.Codec = appCodec
-}
 
 func main() {
 	// Configure cobra to sort commands
@@ -50,6 +39,16 @@ func main() {
 	// TODO: setup keybase, viper object, etc. to be passed into
 	// the below functions and eliminate global vars, like we do
 	// with the cdc
+
+	encodingConfig := simapp.MakeEncodingConfig()
+	appCodec := encodingConfig.Marshaler
+	cdc := encodingConfig.Amino
+	authclient.Codec = appCodec
+
+	clientContext := client.Context{}.
+		WithCodec(cdc).
+		WithJSONMarshaler(appCodec).
+		WithTxGenerator(encodingConfig.TxGenerator)
 
 	rootCmd := &cobra.Command{
 		Use:   "simappcli",
@@ -70,10 +69,8 @@ func main() {
 	rootCmd.AddCommand(
 		rpccmd,
 		client.ConfigCmd(app.DefaultCLIHome),
-		queryCmd(cdc),
-		txCmd(cdc),
-		flags.LineBreak,
-		lcd.ServeCommand(cdc, registerRoutes),
+		queryCmd(clientContext),
+		txCmd(clientContext),
 		flags.LineBreak,
 		keys.Commands(),
 		flags.LineBreak,
@@ -91,7 +88,7 @@ func main() {
 	}
 }
 
-func queryCmd(cdc *amino.Codec) *cobra.Command {
+func queryCmd(clientCtx client.Context) *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:     "query",
 		Aliases: []string{"q"},
@@ -99,47 +96,47 @@ func queryCmd(cdc *amino.Codec) *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
-		authcmd.GetAccountCmd(cdc),
+		authcmd.GetAccountCmd(clientCtx.Codec),
 		flags.LineBreak,
-		rpc.ValidatorCommand(cdc),
+		rpc.ValidatorCommand(clientCtx.Codec),
 		rpc.BlockCommand(),
-		authcmd.QueryTxsByEventsCmd(cdc),
-		authcmd.QueryTxCmd(cdc),
+		authcmd.QueryTxsByEventsCmd(clientCtx.Codec),
+		authcmd.QueryTxCmd(clientCtx.Codec),
 		flags.LineBreak,
 	)
 
 	// add modules' query commands
-	app.ModuleBasics.AddQueryCommands(queryCmd, cdc)
+	app.ModuleBasics.AddQueryCommands(queryCmd, clientCtx)
 
 	return queryCmd
 }
 
-func txCmd(cdc *amino.Codec) *cobra.Command {
+func txCmd(clientCtx client.Context) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:   "tx",
 		Short: "Transactions subcommands",
 	}
 
 	txCmd.AddCommand(
-		bankcmd.SendTxCmd(cdc),
+		bankcmd.NewSendTxCmd(clientCtx),
 		flags.LineBreak,
-		authcmd.GetSignCommand(cdc),
-		authcmd.GetMultiSignCommand(cdc),
+		authcmd.GetSignCommand(clientCtx),
+		authcmd.GetMultiSignCommand(clientCtx),
 		flags.LineBreak,
-		authcmd.GetBroadcastCommand(cdc),
-		authcmd.GetEncodeCommand(cdc),
-		authcmd.GetDecodeCommand(cdc),
+		authcmd.GetBroadcastCommand(clientCtx),
+		authcmd.GetEncodeCommand(clientCtx),
+		authcmd.GetDecodeCommand(clientCtx),
 		flags.LineBreak,
 	)
 
 	// add modules' tx commands
-	app.ModuleBasics.AddTxCommands(txCmd, cdc)
+	app.ModuleBasics.AddTxCommands(txCmd, clientCtx)
 
 	// remove auth and bank commands as they're mounted under the root tx command
 	var cmdsToRemove []*cobra.Command
 
 	for _, cmd := range txCmd.Commands() {
-		if cmd.Use == auth.ModuleName || cmd.Use == bank.ModuleName {
+		if cmd.Use == authtypes.ModuleName || cmd.Use == banktypes.ModuleName {
 			cmdsToRemove = append(cmdsToRemove, cmd)
 		}
 	}
@@ -152,11 +149,11 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 // registerRoutes registers the routes from the different modules for the LCD.
 // NOTE: details on the routes added for each module are in the module documentation
 // NOTE: If making updates here you also need to update the test helper in client/lcd/test_helper.go
-func registerRoutes(rs *lcd.RestServer) {
-	client.RegisterRoutes(rs.CliCtx, rs.Mux)
-	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
-	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
-}
+//func registerRoutes(rs *lcd.RestServer) {
+//	clienttypes.RegisterRoutes(rs.CliCtx, rs.Mux)
+//	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
+//	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
+//}
 
 func initConfig(cmd *cobra.Command) error {
 	home, err := cmd.PersistentFlags().GetString(cli.HomeFlag)

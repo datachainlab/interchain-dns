@@ -15,9 +15,9 @@ import (
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgRegisterDomain:
+		case *types.MsgRegisterDomain:
 			return handleRegisterDomain(ctx, msg, keeper)
-		case types.MsgDomainAssociationCreate:
+		case *types.MsgDomainAssociationCreate:
 			return handleDomainAssociationCreate(ctx, msg, keeper)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC message type: %T", msg)
@@ -25,7 +25,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-func handleRegisterDomain(ctx sdk.Context, msg types.MsgRegisterDomain, keeper Keeper) (*sdk.Result, error) {
+func handleRegisterDomain(ctx sdk.Context, msg *types.MsgRegisterDomain, keeper Keeper) (*sdk.Result, error) {
 	_, err := keeper.SendPacketRegisterDomain(ctx, msg.Domain, msg.SourcePort, msg.SourceChannel, msg.Metadata)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'PacketRegisterChannelDomain': %v", err)
@@ -33,7 +33,7 @@ func handleRegisterDomain(ctx sdk.Context, msg types.MsgRegisterDomain, keeper K
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
-func handleDomainAssociationCreate(ctx sdk.Context, msg types.MsgDomainAssociationCreate, keeper Keeper) (*sdk.Result, error) {
+func handleDomainAssociationCreate(ctx sdk.Context, msg *types.MsgDomainAssociationCreate, keeper Keeper) (*sdk.Result, error) {
 	_, err := keeper.SendDomainAssociationCreatePacketData(ctx, msg.DnsId, msg.SrcClient, msg.DstClient)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'DomainAssociationCreatePacketData': %v", err)
@@ -43,21 +43,22 @@ func handleDomainAssociationCreate(ctx sdk.Context, msg types.MsgDomainAssociati
 
 // NewPacketReceiver returns a new PacketReceiver
 func NewPacketReceiver(keeper Keeper) commontypes.PacketReceiver {
-	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
+	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error) {
 		var data commontypes.PacketData
 		if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
+			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
 		}
 		switch data := data.(type) {
 		case servertypes.DomainAssociationResultPacketData:
 			return handleDomainAssociationResultPacketData(ctx, keeper, packet, data)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
 		}
 	}
 }
 
-func handleDomainAssociationResultPacketData(ctx sdk.Context, keeper Keeper, packet channeltypes.Packet, data servertypes.DomainAssociationResultPacketData) (*sdk.Result, error) {
+func handleDomainAssociationResultPacketData(ctx sdk.Context, keeper Keeper, packet channeltypes.Packet, data servertypes.DomainAssociationResultPacketData) (*sdk.Result, []byte, error) {
+	ack := servertypes.NewDomainAssociationResultPacketAcknowledgement().GetBytes()
 	switch data.Status {
 	case servertypes.STATUS_OK:
 		err := keeper.ReceiveDomainAssociationResultPacketData(
@@ -66,20 +67,20 @@ func handleDomainAssociationResultPacketData(ctx sdk.Context, keeper Keeper, pac
 			data,
 		)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainAssociationResultPacketData: %v'", err)
+			return nil, ack, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainAssociationResultPacketData: %v'", err)
 		}
 	case servertypes.STATUS_FAILED:
 		// TODO cleanup
 	default:
-		return nil, fmt.Errorf("unknown status '%v'", data.Status)
+		return nil, ack, fmt.Errorf("unknown status '%v'", data.Status)
 	}
 
-	ack := servertypes.NewDomainAssociationResultPacketAcknowledgement()
-	if err := keeper.PacketExecuted(ctx, packet, ack.GetBytes()); err != nil {
-		return nil, err
+
+	if err := keeper.PacketExecuted(ctx, packet, ack); err != nil {
+		return nil, ack, err
 	}
 
-	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
+	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack, nil
 }
 
 // NewPacketAcknowledgementReceiver returns a new PacketAcknowledgementReceiver

@@ -21,8 +21,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
 )
 
@@ -96,7 +97,7 @@ func replayTxs(rootDir string) error {
 	gapp := simapp.NewSimApp(
 		ctx.Logger, appDB, traceStoreWriter, true, map[int64]bool{}, viper.GetString(cli.HomeFlag), uint(1),
 		simapp.DefaultAnteHandlerProvider,
-		baseapp.SetPruning(store.PruneEverything), // nothing
+		baseapp.SetPruning(storetypes.PruneEverything), // nothing
 	)
 
 	// Genesis

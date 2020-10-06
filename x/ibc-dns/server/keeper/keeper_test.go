@@ -6,28 +6,32 @@ import (
 	"testing"
 	"time"
 
+	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
+	lite "github.com/tendermint/tendermint/lite2"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clientexported "github.com/cosmos/cosmos-sdk/x/ibc/02-client/exported"
 	connection "github.com/cosmos/cosmos-sdk/x/ibc/03-connection"
-	connectionexported "github.com/cosmos/cosmos-sdk/x/ibc/03-connection/exported"
+	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/03-connection/types"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
-	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
 	tendermint "github.com/cosmos/cosmos-sdk/x/ibc/07-tendermint/types"
 	commitmentexported "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/exported"
 	commitment "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/types"
-	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
+	commitmenttypes "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/example/simapp"
 )
 
 // define constants used for testing
 const (
 	testClientType     = clientexported.Tendermint
-	testChannelOrder   = channelexported.UNORDERED
+	testChannelOrder   = channeltypes.UNORDERED
 	testChannelVersion = "1.0"
 )
 
@@ -77,7 +81,7 @@ func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string, sk
 	header := tendermint.CreateTestHeader(actx.chainID, 1, now, actx.valSet, actx.signers)
 	consensusState := header.ConsensusState()
 
-	clientState, err := tendermint.Initialize(clientID, trustingPeriod, ubdPeriod, maxClockDrift, header)
+	clientState, err := tendermint.Initialize(clientID, lite.DefaultTrustLevel, trustingPeriod, ubdPeriod, maxClockDrift, header, commitmenttypes.GetSDKSpecs())
 	if err != nil {
 		panic(err)
 	}
@@ -109,22 +113,22 @@ func (suite *KeeperTestSuite) updateClient(actx *appContext, clientID string) {
 	actx.app.IBCKeeper.ClientKeeper.SetClientConsensusState(actx.ctx, clientID, 1, state)
 }
 
-func (suite *KeeperTestSuite) createConnection(actx *appContext, clientID, connectionID, counterpartyClientID, counterpartyConnectionID string, state connectionexported.State) {
-	connection := connection.ConnectionEnd{
+func (suite *KeeperTestSuite) createConnection(actx *appContext, clientID, connectionID, counterpartyClientID, counterpartyConnectionID string, state connectiontypes.State) {
+	connection := connectiontypes.ConnectionEnd{
 		State:    state,
 		ClientID: clientID,
-		Counterparty: connection.Counterparty{
-			ClientID:     counterpartyClientID,
-			ConnectionID: counterpartyConnectionID,
-			Prefix:       actx.app.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix(),
-		},
+		Counterparty: connectiontypes.NewCounterparty(
+			counterpartyClientID,
+			counterpartyConnectionID,
+			commitmenttypes.NewMerklePrefix(actx.app.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes()),
+		),
 		Versions: connection.GetCompatibleVersions(),
 	}
 
 	actx.app.IBCKeeper.ConnectionKeeper.SetConnection(actx.ctx, connectionID, connection)
 }
 
-func (suite *KeeperTestSuite) createChannel(actx *appContext, portID string, chanID string, connID string, counterpartyPort string, counterpartyChan string, state channelexported.State) {
+func (suite *KeeperTestSuite) createChannel(actx *appContext, portID string, chanID string, connID string, counterpartyPort string, counterpartyChan string, state channeltypes.State) {
 	ch := channel.Channel{
 		State:    state,
 		Ordering: testChannelOrder,
@@ -182,16 +186,16 @@ func (suite *KeeperTestSuite) createConnections(
 	dstConnectionID string,
 	dstapp *appContext,
 ) {
-	suite.createConnection(srcapp, srcClientID, srcConnectionID, dstClientID, dstConnectionID, connectionexported.OPEN)
-	suite.createConnection(dstapp, dstClientID, dstConnectionID, srcClientID, srcConnectionID, connectionexported.OPEN)
+	suite.createConnection(srcapp, srcClientID, srcConnectionID, dstClientID, dstConnectionID, connectiontypes.OPEN)
+	suite.createConnection(dstapp, dstClientID, dstConnectionID, srcClientID, srcConnectionID, connectiontypes.OPEN)
 }
 
 func (suite *KeeperTestSuite) createChannels(
 	srcConnectionID string, srcapp *appContext, srcc ChannelInfo,
 	dstConnectionID string, dstapp *appContext, dstc ChannelInfo,
 ) {
-	suite.createChannel(srcapp, srcc.Port, srcc.Channel, srcConnectionID, dstc.Port, dstc.Channel, channelexported.OPEN)
-	suite.createChannel(dstapp, dstc.Port, dstc.Channel, dstConnectionID, srcc.Port, srcc.Channel, channelexported.OPEN)
+	suite.createChannel(srcapp, srcc.Port, srcc.Channel, srcConnectionID, dstc.Port, dstc.Channel, channeltypes.OPEN)
+	suite.createChannel(dstapp, dstc.Port, dstc.Channel, dstConnectionID, srcc.Port, srcc.Channel, channeltypes.OPEN)
 
 	nextSeqSend := uint64(1)
 	srcapp.app.IBCKeeper.ChannelKeeper.SetNextSequenceSend(srcapp.ctx, srcc.Port, srcc.Channel, nextSeqSend)
