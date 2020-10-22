@@ -109,9 +109,9 @@ func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
 	)
 	if ck != nil {
 		flags |= flagClient
-		hs = append(hs, client.NewHandler(*ck))
-		rs = append(rs, client.NewPacketReceiver(*ck))
-		as = append(as, client.NewPacketAcknowledgementReceiver(*ck))
+		hs = append(hs, dnsclient.NewHandler(*ck))
+		rs = append(rs, dnsclient.NewPacketReceiver(*ck))
+		as = append(as, dnsclient.NewPacketAcknowledgementReceiver(*ck))
 	}
 	if sk != nil {
 		flags |= flagServer
