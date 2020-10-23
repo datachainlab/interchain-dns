@@ -20,7 +20,7 @@ func NewPacketReceiver(keeper Keeper) commontypes.PacketReceiver {
 		case types.DomainAssociationCreatePacketData:
 			return handleDomainAssociationCreatePacketData(ctx, keeper, packet, data)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
@@ -64,7 +64,7 @@ func NewPacketAcknowledgementReceiver(keeper Keeper) commontypes.PacketAcknowled
 		case types.DomainAssociationResultPacketAcknowledgement:
 			return handleDomainAssociationResultPacketAcknowledgement(ctx, keeper, ack)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
