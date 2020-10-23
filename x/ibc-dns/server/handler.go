@@ -34,9 +34,6 @@ func handlePacketRegisterChannelDomain(ctx sdk.Context, keeper Keeper, packet ch
 		status = types.STATUS_OK
 	}
 	ack := types.NewRegisterDomainPacketAcknowledgement(status, data.DomainName).GetBytes()
-	if err := keeper.PacketExecuted(ctx, packet, ack); err != nil {
-		return nil, ack, err
-	}
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack, nil
 }
 
@@ -47,9 +44,6 @@ func handleDomainAssociationCreatePacketData(ctx sdk.Context, keeper Keeper, pac
 		if err != nil {
 			return nil, ack.GetBytes(), err
 		}
-	}
-	if err := keeper.PacketExecuted(ctx, packet, ack.GetBytes()); err != nil {
-		return nil, ack.GetBytes(), err
 	}
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack.GetBytes(), nil
 }

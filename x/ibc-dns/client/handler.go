@@ -75,11 +75,6 @@ func handleDomainAssociationResultPacketData(ctx sdk.Context, keeper Keeper, pac
 		return nil, ack, fmt.Errorf("unknown status '%v'", data.Status)
 	}
 
-
-	if err := keeper.PacketExecuted(ctx, packet, ack); err != nil {
-		return nil, ack, err
-	}
-
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack, nil
 }
 
