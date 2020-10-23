@@ -110,6 +110,7 @@ func NewAppModule(k Keeper, ck *client.Keeper, sk *server.Keeper) AppModule {
 		flags |= flagClient
 		hs = append(hs, client.NewHandler(*ck))
 		rs = append(rs, client.NewPacketReceiver(*ck))
+		as = append(as, client.NewPacketAcknowledgementReceiver(*ck))
 	}
 	if sk != nil {
 		flags |= flagServer
