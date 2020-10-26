@@ -2,7 +2,6 @@ package server
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
 	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
@@ -21,7 +20,7 @@ func NewPacketReceiver(keeper Keeper) commontypes.PacketReceiver {
 		case *types.DomainAssociationCreatePacketData:
 			return handleDomainAssociationCreatePacketData(ctx, keeper, packet, data)
 		default:
-			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
@@ -66,7 +65,7 @@ func NewPacketAcknowledgementReceiver(keeper Keeper) commontypes.PacketAcknowled
 		case *types.DomainAssociationResultPacketAcknowledgement:
 			return handleDomainAssociationResultPacketAcknowledgement(ctx, keeper, ackData)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", ackData)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
