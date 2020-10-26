@@ -20,7 +20,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case types.MsgDomainAssociationCreate:
 			return handleDomainAssociationCreate(ctx, msg, keeper)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC message type: %T", msg)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
@@ -46,13 +46,13 @@ func NewPacketReceiver(keeper Keeper) commontypes.PacketReceiver {
 	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
 		var data commontypes.PacketData
 		if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
+			return nil, commontypes.ErrUnknownRequest
 		}
 		switch data := data.(type) {
 		case servertypes.DomainAssociationResultPacketData:
 			return handleDomainAssociationResultPacketData(ctx, keeper, packet, data)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
@@ -95,7 +95,7 @@ func NewPacketAcknowledgementReceiver(keeper Keeper) commontypes.PacketAcknowled
 		case servertypes.DomainAssociationCreatePacketAcknowledgement:
 			return handleDomainAssociationCreatePacketAcknowledgement(ctx, keeper, ack)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet data type: %T", data)
+			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
