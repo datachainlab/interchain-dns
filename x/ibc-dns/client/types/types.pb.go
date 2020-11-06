@@ -4,14 +4,20 @@
 package types
 
 import (
+	context "context"
 	fmt "fmt"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+
+	types "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	types1 "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	_ "github.com/gogo/protobuf/gogoproto"
+	grpc1 "github.com/gogo/protobuf/grpc"
+	proto "github.com/gogo/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -29,10 +35,12 @@ type MsgRegisterDomain struct {
 	// the port on which the packet will be sent
 	SourcePort string `protobuf:"bytes,1,opt,name=source_port,json=sourcePort,proto3" json:"source_port,omitempty" yaml:"source_port"`
 	// the channel by which the packet will be sent
-	SourceChannel string                                        `protobuf:"bytes,2,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty" yaml:"source_channel"`
-	Domain        string                                        `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
-	Metadata      []byte                                        `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Sender        github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,5,opt,name=sender,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender,omitempty"`
+	SourceChannel    string       `protobuf:"bytes,2,opt,name=source_channel,json=sourceChannel,proto3" json:"source_channel,omitempty" yaml:"source_channel"`
+	Domain           string       `protobuf:"bytes,3,opt,name=domain,proto3" json:"domain,omitempty"`
+	Metadata         []byte       `protobuf:"bytes,4,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Sender           []byte       `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
+	TimeoutHeight    types.Height `protobuf:"bytes,6,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height" yaml:"timeout_height"`
+	TimeoutTimestamp uint64       `protobuf:"varint,7,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty" yaml:"timeout_timestamp"`
 }
 
 func (m *MsgRegisterDomain) Reset()         { *m = MsgRegisterDomain{} }
@@ -68,18 +76,56 @@ func (m *MsgRegisterDomain) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRegisterDomain proto.InternalMessageInfo
 
+type MsgRegisterDomainResponse struct {
+}
+
+func (m *MsgRegisterDomainResponse) Reset()         { *m = MsgRegisterDomainResponse{} }
+func (m *MsgRegisterDomainResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRegisterDomainResponse) ProtoMessage()    {}
+func (*MsgRegisterDomainResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cd45cdcc41e691b0, []int{1}
+}
+func (m *MsgRegisterDomainResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgRegisterDomainResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgRegisterDomainResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgRegisterDomainResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRegisterDomainResponse.Merge(m, src)
+}
+func (m *MsgRegisterDomainResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgRegisterDomainResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRegisterDomainResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgRegisterDomainResponse proto.InternalMessageInfo
+
 type MsgDomainAssociationCreate struct {
-	Sender    github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=sender,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"sender,omitempty"`
-	DnsId     types.LocalDNSID                              `protobuf:"bytes,2,opt,name=dns_id,json=dnsId,proto3" json:"dns_id"`
-	SrcClient types.ClientDomain                            `protobuf:"bytes,3,opt,name=src_client,json=srcClient,proto3" json:"src_client"`
-	DstClient types.ClientDomain                            `protobuf:"bytes,4,opt,name=dst_client,json=dstClient,proto3" json:"dst_client"`
+	Sender           []byte              `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	DnsId            types1.LocalDNSID   `protobuf:"bytes,2,opt,name=dns_id,json=dnsId,proto3" json:"dns_id"`
+	SrcClient        types1.ClientDomain `protobuf:"bytes,3,opt,name=src_client,json=srcClient,proto3" json:"src_client"`
+	DstClient        types1.ClientDomain `protobuf:"bytes,4,opt,name=dst_client,json=dstClient,proto3" json:"dst_client"`
+	TimeoutHeight    types.Height        `protobuf:"bytes,5,opt,name=timeout_height,json=timeoutHeight,proto3" json:"timeout_height" yaml:"timeout_height"`
+	TimeoutTimestamp uint64              `protobuf:"varint,6,opt,name=timeout_timestamp,json=timeoutTimestamp,proto3" json:"timeout_timestamp,omitempty" yaml:"timeout_timestamp"`
 }
 
 func (m *MsgDomainAssociationCreate) Reset()         { *m = MsgDomainAssociationCreate{} }
 func (m *MsgDomainAssociationCreate) String() string { return proto.CompactTextString(m) }
 func (*MsgDomainAssociationCreate) ProtoMessage()    {}
 func (*MsgDomainAssociationCreate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_cd45cdcc41e691b0, []int{1}
+	return fileDescriptor_cd45cdcc41e691b0, []int{2}
 }
 func (m *MsgDomainAssociationCreate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -108,44 +154,209 @@ func (m *MsgDomainAssociationCreate) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDomainAssociationCreate proto.InternalMessageInfo
 
+type MsgDomainAssociationCreateResponse struct {
+}
+
+func (m *MsgDomainAssociationCreateResponse) Reset()         { *m = MsgDomainAssociationCreateResponse{} }
+func (m *MsgDomainAssociationCreateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDomainAssociationCreateResponse) ProtoMessage()    {}
+func (*MsgDomainAssociationCreateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_cd45cdcc41e691b0, []int{3}
+}
+func (m *MsgDomainAssociationCreateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDomainAssociationCreateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDomainAssociationCreateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDomainAssociationCreateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDomainAssociationCreateResponse.Merge(m, src)
+}
+func (m *MsgDomainAssociationCreateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDomainAssociationCreateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDomainAssociationCreateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDomainAssociationCreateResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgRegisterDomain)(nil), "ibc.dns.client.MsgRegisterDomain")
+	proto.RegisterType((*MsgRegisterDomainResponse)(nil), "ibc.dns.client.MsgRegisterDomainResponse")
 	proto.RegisterType((*MsgDomainAssociationCreate)(nil), "ibc.dns.client.MsgDomainAssociationCreate")
+	proto.RegisterType((*MsgDomainAssociationCreateResponse)(nil), "ibc.dns.client.MsgDomainAssociationCreateResponse")
 }
 
 func init() { proto.RegisterFile("ibc/dns/client/types.proto", fileDescriptor_cd45cdcc41e691b0) }
 
 var fileDescriptor_cd45cdcc41e691b0 = []byte{
-	// 460 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x92, 0x3f, 0x6f, 0xd4, 0x30,
-	0x18, 0xc6, 0x93, 0xe3, 0x7a, 0xa2, 0x3e, 0xa8, 0x84, 0x05, 0x55, 0x88, 0x50, 0x52, 0x65, 0xea,
-	0x92, 0x44, 0x94, 0xa1, 0x52, 0x27, 0xee, 0xcf, 0xc0, 0x49, 0x14, 0xa1, 0xb0, 0xb1, 0x9c, 0x1c,
-	0xdb, 0xca, 0x59, 0x24, 0xf6, 0xc9, 0xaf, 0x2b, 0xd1, 0x6f, 0xc0, 0x88, 0xc4, 0x17, 0xe0, 0x03,
-	0xf0, 0x41, 0x3a, 0x76, 0x64, 0x3a, 0xa1, 0xbb, 0x6f, 0xd0, 0x91, 0x09, 0xc5, 0x0e, 0x25, 0x74,
-	0x42, 0x62, 0x4a, 0xde, 0xf7, 0x97, 0xe7, 0x71, 0xfc, 0xbc, 0x2f, 0x0a, 0x45, 0x49, 0x73, 0x26,
-	0x21, 0xa7, 0xb5, 0xe0, 0xd2, 0xe4, 0xe6, 0x72, 0xcd, 0x21, 0x5b, 0x6b, 0x65, 0x14, 0x3e, 0x10,
-	0x25, 0xcd, 0x98, 0x84, 0xcc, 0xb1, 0xf0, 0x71, 0xa5, 0x2a, 0x65, 0x51, 0xde, 0xbe, 0xb9, 0xaf,
-	0xc2, 0x3f, 0x0e, 0xaa, 0x69, 0x94, 0xec, 0x3b, 0x24, 0x5f, 0x06, 0xe8, 0xd1, 0x39, 0x54, 0x05,
-	0xaf, 0x04, 0x18, 0xae, 0xe7, 0xaa, 0x21, 0x42, 0xe2, 0x53, 0x34, 0x06, 0x75, 0xa1, 0x29, 0x5f,
-	0xae, 0x95, 0x36, 0x81, 0x7f, 0xe4, 0x1f, 0xef, 0x4f, 0x0f, 0x6f, 0x36, 0x31, 0xbe, 0x24, 0x4d,
-	0x7d, 0x96, 0xf4, 0x60, 0x52, 0x20, 0x57, 0xbd, 0x55, 0xda, 0xe0, 0x97, 0xe8, 0xa0, 0x63, 0x74,
-	0x45, 0xa4, 0xe4, 0x75, 0x30, 0xb0, 0xda, 0xa7, 0x37, 0x9b, 0xf8, 0xc9, 0x5f, 0xda, 0x8e, 0x27,
-	0xc5, 0x43, 0xd7, 0x98, 0xb9, 0x1a, 0x1f, 0xa2, 0x11, 0xb3, 0x3f, 0x11, 0xdc, 0x6b, 0x95, 0x45,
-	0x57, 0xe1, 0x10, 0xdd, 0x6f, 0xb8, 0x21, 0x8c, 0x18, 0x12, 0x0c, 0x8f, 0xfc, 0xe3, 0x07, 0xc5,
-	0x6d, 0x8d, 0x17, 0x68, 0x04, 0x5c, 0x32, 0xae, 0x83, 0xbd, 0x96, 0x4c, 0x9f, 0xff, 0xdc, 0xc4,
-	0x69, 0x25, 0xcc, 0xea, 0xa2, 0xcc, 0xa8, 0x6a, 0x72, 0xaa, 0xa0, 0x51, 0xd0, 0x3d, 0x52, 0x60,
-	0x1f, 0xba, 0x08, 0x26, 0x94, 0x4e, 0x18, 0xd3, 0x1c, 0xa0, 0xe8, 0x0c, 0xce, 0x86, 0x9f, 0xbe,
-	0xc6, 0x5e, 0xf2, 0x6d, 0x80, 0xc2, 0x73, 0xa8, 0x5c, 0x1a, 0x13, 0x00, 0x45, 0x05, 0x31, 0x42,
-	0xc9, 0x99, 0xe6, 0xc4, 0xf0, 0xde, 0x79, 0xfe, 0x7f, 0x9e, 0x87, 0x4f, 0xd1, 0x88, 0x49, 0x58,
-	0x0a, 0x66, 0x83, 0x1a, 0x9f, 0x84, 0xd9, 0xed, 0x48, 0xed, 0xb0, 0xb2, 0xd7, 0x8a, 0x92, 0x7a,
-	0xfe, 0xe6, 0xdd, 0x62, 0x3e, 0x1d, 0x5e, 0x6d, 0x62, 0xaf, 0xd8, 0x63, 0x12, 0x16, 0x0c, 0x4f,
-	0x10, 0x02, 0x4d, 0x97, 0x6e, 0xf0, 0x36, 0xab, 0xf1, 0xc9, 0xb3, 0xbb, 0xe2, 0x99, 0xa5, 0xee,
-	0x1a, 0x9d, 0x7c, 0x1f, 0x34, 0x75, 0xed, 0xd6, 0x82, 0x81, 0xf9, 0x6d, 0x31, 0xfc, 0x77, 0x0b,
-	0x06, 0xc6, 0xb5, 0x5d, 0x5c, 0xd3, 0xf2, 0x6a, 0x1b, 0xf9, 0xd7, 0xdb, 0xc8, 0xff, 0xb1, 0x8d,
-	0xfc, 0xcf, 0xbb, 0xc8, 0xbb, 0xde, 0x45, 0xde, 0xf7, 0x5d, 0xe4, 0xbd, 0x7f, 0xd5, 0x4b, 0xa5,
-	0x1d, 0x15, 0x5d, 0x11, 0x21, 0x6b, 0x52, 0xf6, 0xb2, 0x49, 0x85, 0x34, 0x5c, 0x5b, 0x90, 0xb6,
-	0x4b, 0xfa, 0x31, 0x17, 0x25, 0x4d, 0xef, 0x2e, 0x7c, 0x39, 0xb2, 0xfb, 0xfa, 0xe2, 0x57, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xf0, 0x38, 0x84, 0x9c, 0x0f, 0x03, 0x00, 0x00,
+	// 607 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x54, 0x4f, 0x6f, 0xd3, 0x3e,
+	0x18, 0x6e, 0x7e, 0xed, 0xfa, 0x63, 0x1e, 0xab, 0x58, 0x04, 0x23, 0x0b, 0x23, 0x29, 0x11, 0x87,
+	0x82, 0xd4, 0x44, 0x2b, 0x87, 0x49, 0x3b, 0xb1, 0x6e, 0x87, 0x4d, 0x62, 0x08, 0x05, 0x4e, 0x1c,
+	0x28, 0x8e, 0x6d, 0xa5, 0x16, 0x8d, 0x5d, 0xc5, 0xee, 0x44, 0xbf, 0x01, 0x17, 0x24, 0x3e, 0x02,
+	0x27, 0x3e, 0xcb, 0x8e, 0x3b, 0x72, 0xaa, 0xa6, 0xf6, 0x1b, 0xf4, 0x13, 0x20, 0x3b, 0xc9, 0xd6,
+	0x3f, 0x54, 0x4c, 0x42, 0xe2, 0x94, 0xbc, 0xef, 0xf3, 0xbc, 0x8f, 0xed, 0xf7, 0x79, 0x6d, 0x60,
+	0xd3, 0x08, 0x05, 0x98, 0x89, 0x00, 0xf5, 0x28, 0x61, 0x32, 0x90, 0xc3, 0x3e, 0x11, 0x7e, 0x3f,
+	0xe5, 0x92, 0x9b, 0x35, 0x1a, 0x21, 0x1f, 0x33, 0xe1, 0x67, 0x98, 0x7d, 0x3f, 0xe6, 0x31, 0xd7,
+	0x50, 0xa0, 0xfe, 0x32, 0x96, 0xed, 0x2a, 0x05, 0xc4, 0x53, 0x52, 0x48, 0x9c, 0xef, 0xe5, 0x7f,
+	0x39, 0xe1, 0x66, 0x09, 0x9e, 0x24, 0x9c, 0xcd, 0x2e, 0xe1, 0x7d, 0x2d, 0x83, 0xad, 0x33, 0x11,
+	0x87, 0x24, 0xa6, 0x42, 0x92, 0xf4, 0x98, 0x27, 0x90, 0x32, 0x73, 0x1f, 0x6c, 0x08, 0x3e, 0x48,
+	0x11, 0xe9, 0xf4, 0x79, 0x2a, 0x2d, 0xa3, 0x6e, 0x34, 0xd6, 0xdb, 0xdb, 0xd3, 0x91, 0x6b, 0x0e,
+	0x61, 0xd2, 0x3b, 0xf0, 0x66, 0x40, 0x2f, 0x04, 0x59, 0xf4, 0x86, 0xa7, 0xd2, 0x7c, 0x09, 0x6a,
+	0x39, 0x86, 0xba, 0x90, 0x31, 0xd2, 0xb3, 0xfe, 0xd3, 0xb5, 0x3b, 0xd3, 0x91, 0xfb, 0x60, 0xae,
+	0x36, 0xc7, 0xbd, 0x70, 0x33, 0x4b, 0x1c, 0x65, 0xb1, 0xb9, 0x0d, 0xaa, 0x58, 0x6f, 0xc2, 0x2a,
+	0xab, 0xca, 0x30, 0x8f, 0x4c, 0x1b, 0xdc, 0x49, 0x88, 0x84, 0x18, 0x4a, 0x68, 0x55, 0xea, 0x46,
+	0xe3, 0x6e, 0x78, 0x1d, 0xab, 0x1a, 0x41, 0x18, 0x26, 0xa9, 0xb5, 0xa6, 0x91, 0x3c, 0x32, 0x3f,
+	0x82, 0x9a, 0xa4, 0x09, 0xe1, 0x03, 0xd9, 0xe9, 0x12, 0x1a, 0x77, 0xa5, 0x55, 0xad, 0x1b, 0x8d,
+	0x8d, 0x96, 0xed, 0xab, 0xc6, 0xaa, 0x96, 0xe5, 0x9d, 0xf5, 0xcf, 0xf7, 0xfc, 0x13, 0xcd, 0x68,
+	0x3f, 0xbe, 0x18, 0xb9, 0xa5, 0x9b, 0xdd, 0xce, 0xd7, 0x7b, 0xe1, 0x66, 0x9e, 0xc8, 0xd8, 0xe6,
+	0x29, 0xd8, 0x2a, 0x18, 0xea, 0x2b, 0x24, 0x4c, 0xfa, 0xd6, 0xff, 0x75, 0xa3, 0x51, 0x69, 0xef,
+	0x4e, 0x47, 0xae, 0x35, 0x2f, 0x72, 0x4d, 0xf1, 0xc2, 0x7b, 0x79, 0xee, 0x5d, 0x91, 0x3a, 0xa8,
+	0x7c, 0xf9, 0xee, 0x96, 0xbc, 0x47, 0x60, 0x67, 0xc9, 0x8e, 0x90, 0x88, 0x3e, 0x67, 0x82, 0x78,
+	0x3f, 0xca, 0xc0, 0x3e, 0x13, 0x71, 0x96, 0x3d, 0x14, 0x82, 0x23, 0x0a, 0x25, 0xe5, 0xec, 0x28,
+	0x25, 0x50, 0x92, 0x99, 0x36, 0x18, 0x73, 0x6d, 0xd8, 0x07, 0x55, 0xcc, 0x44, 0x87, 0x62, 0x6d,
+	0x46, 0x71, 0x7c, 0x3d, 0x57, 0x7a, 0x20, 0xfc, 0x57, 0x1c, 0xc1, 0xde, 0xf1, 0xeb, 0xb7, 0xa7,
+	0xc7, 0xed, 0x8a, 0x3a, 0x7e, 0xb8, 0x86, 0x99, 0x38, 0xc5, 0xe6, 0x21, 0x00, 0x22, 0x45, 0x9d,
+	0xac, 0x47, 0xda, 0x8f, 0x8d, 0xd6, 0xee, 0x62, 0xf1, 0x91, 0x46, 0xb3, 0x3d, 0xe5, 0xe5, 0xeb,
+	0x22, 0x45, 0x59, 0x5a, 0x49, 0x60, 0x21, 0x0b, 0x89, 0xca, 0xed, 0x25, 0xb0, 0x90, 0xb9, 0xc4,
+	0xb2, 0x8b, 0x6b, 0xff, 0xc2, 0xc5, 0xea, 0x5f, 0xb8, 0xf8, 0x14, 0x78, 0xab, 0x7d, 0x2a, 0xec,
+	0x6c, 0x5d, 0x19, 0xa0, 0x7c, 0x26, 0x62, 0xf3, 0x03, 0xa8, 0x2d, 0xdc, 0xbf, 0x27, 0xfe, 0xfc,
+	0xcd, 0xf7, 0x97, 0x66, 0xc2, 0x7e, 0xf6, 0x47, 0x4a, 0xb1, 0x8e, 0x39, 0x04, 0x0f, 0x57, 0x8d,
+	0xcc, 0xf3, 0xdf, 0xa8, 0xac, 0xe0, 0xda, 0xad, 0xdb, 0x73, 0x8b, 0xa5, 0xdb, 0xd1, 0xc5, 0xd8,
+	0x31, 0x2e, 0xc7, 0x8e, 0x71, 0x35, 0x76, 0x8c, 0x6f, 0x13, 0xa7, 0x74, 0x39, 0x71, 0x4a, 0x3f,
+	0x27, 0x4e, 0xe9, 0xfd, 0x49, 0x4c, 0x65, 0x77, 0x10, 0xa9, 0x11, 0x08, 0xd4, 0x25, 0x46, 0x5d,
+	0x48, 0x59, 0x0f, 0x46, 0x01, 0xe2, 0x22, 0xe1, 0xa2, 0x29, 0xf0, 0xa7, 0x26, 0x65, 0x92, 0xa4,
+	0x1a, 0x68, 0xaa, 0xe7, 0xeb, 0x73, 0x40, 0x23, 0xd4, 0x5c, 0x7c, 0x2b, 0xa3, 0xaa, 0x7e, 0xc9,
+	0x5e, 0xfc, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xca, 0x85, 0x76, 0xbd, 0x4a, 0x05, 0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// MsgClient is the client API for Msg service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type MsgClient interface {
+	RegisterDomain(ctx context.Context, in *MsgRegisterDomain, opts ...grpc.CallOption) (*MsgRegisterDomainResponse, error)
+	DomainAssociationCreate(ctx context.Context, in *MsgDomainAssociationCreate, opts ...grpc.CallOption) (*MsgDomainAssociationCreateResponse, error)
+}
+
+type msgClient struct {
+	cc grpc1.ClientConn
+}
+
+func NewMsgClient(cc grpc1.ClientConn) MsgClient {
+	return &msgClient{cc}
+}
+
+func (c *msgClient) RegisterDomain(ctx context.Context, in *MsgRegisterDomain, opts ...grpc.CallOption) (*MsgRegisterDomainResponse, error) {
+	out := new(MsgRegisterDomainResponse)
+	err := c.cc.Invoke(ctx, "/ibc.dns.client.Msg/RegisterDomain", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DomainAssociationCreate(ctx context.Context, in *MsgDomainAssociationCreate, opts ...grpc.CallOption) (*MsgDomainAssociationCreateResponse, error) {
+	out := new(MsgDomainAssociationCreateResponse)
+	err := c.cc.Invoke(ctx, "/ibc.dns.client.Msg/DomainAssociationCreate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+type (
+	// MsgServer is the server API for Msg service.
+	MsgServer interface {
+		RegisterDomain(context.Context, *MsgRegisterDomain) (*MsgRegisterDomainResponse, error)
+		DomainAssociationCreate(context.Context, *MsgDomainAssociationCreate) (*MsgDomainAssociationCreateResponse, error)
+	}
+)
+
+// UnimplementedMsgServer can be embedded to have forward compatible implementations.
+type UnimplementedMsgServer struct {
+}
+
+func (*UnimplementedMsgServer) RegisterDomain(ctx context.Context, req *MsgRegisterDomain) (*MsgRegisterDomainResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterDomain not implemented")
+}
+func (*UnimplementedMsgServer) DomainAssociationCreate(ctx context.Context, req *MsgDomainAssociationCreate) (*MsgDomainAssociationCreateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DomainAssociationCreate not implemented")
+}
+
+func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
+	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_RegisterDomain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRegisterDomain)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).RegisterDomain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.dns.client.Msg/RegisterDomain",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).RegisterDomain(ctx, req.(*MsgRegisterDomain))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DomainAssociationCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDomainAssociationCreate)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DomainAssociationCreate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ibc.dns.client.Msg/DomainAssociationCreate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DomainAssociationCreate(ctx, req.(*MsgDomainAssociationCreate))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Msg_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "ibc.dns.client.Msg",
+	HandlerType: (*MsgServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegisterDomain",
+			Handler:    _Msg_RegisterDomain_Handler,
+		},
+		{
+			MethodName: "DomainAssociationCreate",
+			Handler:    _Msg_DomainAssociationCreate_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "ibc/dns/client/types.proto",
 }
 
 func (m *MsgRegisterDomain) Marshal() (dAtA []byte, err error) {
@@ -168,6 +379,21 @@ func (m *MsgRegisterDomain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.TimeoutTimestamp != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.TimeoutTimestamp))
+		i--
+		dAtA[i] = 0x38
+	}
+	{
+		size, err := m.TimeoutHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
 	if len(m.Sender) > 0 {
 		i -= len(m.Sender)
 		copy(dAtA[i:], m.Sender)
@@ -206,6 +432,29 @@ func (m *MsgRegisterDomain) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgRegisterDomainResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgRegisterDomainResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgRegisterDomainResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgDomainAssociationCreate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -226,6 +475,21 @@ func (m *MsgDomainAssociationCreate) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
+	if m.TimeoutTimestamp != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.TimeoutTimestamp))
+		i--
+		dAtA[i] = 0x30
+	}
+	{
+		size, err := m.TimeoutHeight.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
 	{
 		size, err := m.DstClient.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -266,6 +530,29 @@ func (m *MsgDomainAssociationCreate) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgDomainAssociationCreateResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDomainAssociationCreateResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDomainAssociationCreateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTypes(v)
 	base := offset
@@ -303,6 +590,20 @@ func (m *MsgRegisterDomain) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
+	l = m.TimeoutHeight.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	if m.TimeoutTimestamp != 0 {
+		n += 1 + sovTypes(uint64(m.TimeoutTimestamp))
+	}
+	return n
+}
+
+func (m *MsgRegisterDomainResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -322,6 +623,20 @@ func (m *MsgDomainAssociationCreate) Size() (n int) {
 	n += 1 + l + sovTypes(uint64(l))
 	l = m.DstClient.Size()
 	n += 1 + l + sovTypes(uint64(l))
+	l = m.TimeoutHeight.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	if m.TimeoutTimestamp != 0 {
+		n += 1 + sovTypes(uint64(m.TimeoutTimestamp))
+	}
+	return n
+}
+
+func (m *MsgDomainAssociationCreateResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -524,6 +839,111 @@ func (m *MsgRegisterDomain) Unmarshal(dAtA []byte) error {
 				m.Sender = []byte{}
 			}
 			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TimeoutHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutTimestamp", wireType)
+			}
+			m.TimeoutTimestamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TimeoutTimestamp |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgRegisterDomainResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgRegisterDomainResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgRegisterDomainResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTypes(dAtA[iNdEx:])
@@ -710,6 +1130,111 @@ func (m *MsgDomainAssociationCreate) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutHeight", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TimeoutHeight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeoutTimestamp", wireType)
+			}
+			m.TimeoutTimestamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TimeoutTimestamp |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDomainAssociationCreateResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDomainAssociationCreateResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDomainAssociationCreateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTypes(dAtA[iNdEx:])

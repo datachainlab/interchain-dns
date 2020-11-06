@@ -2,7 +2,6 @@ package dns
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -13,18 +12,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
-	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
-	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
-	"github.com/gogo/protobuf/grpc"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"google.golang.org/grpc"
+
+	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
+	clientkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/keeper"
+	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
+	dnskeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
+	dnsserver "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
+	serverkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/keeper"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
 )
 
 const (
@@ -53,8 +57,13 @@ func (AppModuleBasic) Name() string {
 	return commontypes.ModuleName
 }
 
-// RegisterCodec implements AppModuleBasic interface
-func (AppModuleBasic) RegisterCodec(*codec.LegacyAmino) {}
+func (b AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
+}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // transfer module.
@@ -62,71 +71,64 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 	return cdc.MustMarshalJSON(commontypes.DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the ibc transfer module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var gs commontypes.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", commontypes.ModuleName, err)
+// ValidateGenesis checks the Genesis
+func (AppModuleBasic) ValidateGenesis(m codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var data commontypes.GenesisState
+	err := m.UnmarshalJSON(bz, &data)
+	if err != nil {
+		return err
 	}
 
-	return gs.Validate()
+	return data.Validate()
 }
 
 // RegisterRESTRoutes implements AppModuleBasic interface
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCRoutes registers the gRPC Gateway routes for the ibc-transfer module.
-func (a AppModuleBasic) RegisterGRPCRoutes(_ client.Context, _ *runtime.ServeMux) {
+func (b AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, serveMux *runtime.ServeMux) {
 }
 
-// GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	// return cli.NewTxCmd()
+func (b AppModuleBasic) GetTxCmd() *cobra.Command {
+	//TODO
 	return nil
 }
 
-// GetQueryCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	// return cli.GetQueryCmd()
+func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
+	//TODO
 	return nil
-}
-
-// RegisterInterfaces registers module concrete types into protobuf Any.
-func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
 }
 
 // AppModule struct
 type AppModule struct {
 	AppModuleBasic
-	keeper                        Keeper
+	keeper                        keeper.Keeper
 	handler                       sdk.Handler
 	querier                       sdk.Querier
-	packetReceiver                PacketReceiver
-	packetAcknowledgementReceiver PacketAcknowledgementReceiver
+	packetReceiver                commontypes.PacketReceiver
+	packetAcknowledgementReceiver commontypes.PacketAcknowledgementReceiver
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
+func NewAppModule(k dnskeeper.Keeper, ck *clientkeeper.Keeper, sk *serverkeeper.Keeper) AppModule {
 	var (
 		flags uint8
 		hs    []sdk.Handler
 		qs    []sdk.Querier
-		rs    []PacketReceiver
-		as    []PacketAcknowledgementReceiver
+		rs    []commontypes.PacketReceiver
+		as    []commontypes.PacketAcknowledgementReceiver
 	)
 	if ck != nil {
 		flags |= flagClient
-		hs = append(hs, client.NewHandler(*ck))
-		rs = append(rs, client.NewPacketReceiver(*ck))
-		as = append(as, client.NewPacketAcknowledgementReceiver(*ck))
+		hs = append(hs, dnsclient.NewHandler(*ck))
+		rs = append(rs, dnsclient.NewPacketReceiver(*ck))
+		as = append(as, dnsclient.NewPacketAcknowledgementReceiver(*ck))
 	}
 	if sk != nil {
 		flags |= flagServer
-		qs = append(qs, server.NewQuerier(*sk))
-		rs = append(rs, server.NewPacketReceiver(*sk))
-		as = append(as, server.NewPacketAcknowledgementReceiver(*sk))
+		qs = append(qs, serverkeeper.NewQuerier(*sk))
+		rs = append(rs, dnsserver.NewPacketReceiver(*sk))
+		as = append(as, dnsserver.NewPacketAcknowledgementReceiver(*sk))
 	}
 	return AppModule{
 		AppModuleBasic:                NewAppModuleBasic(flags),
@@ -138,19 +140,22 @@ func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
 	}
 }
 
+// Name returns module name
+func (AppModule) Name() string {
+	return commontypes.ModuleName
+}
+
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(commontypes.RouterKey, am.handler)
+}
+
+func (am AppModule) RegisterServices(configurator module.Configurator) {
+	return
+}
+
 // RegisterInvariants implements the AppModule interface
 func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO
-}
-
-// Route implements the AppModule interface
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(RouterKey, am.handler)
-}
-
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
-	return commontypes.QuerierRoute
 }
 
 // LegacyQuerierHandler implements the AppModule interface
@@ -164,13 +169,9 @@ func (am AppModule) RegisterQueryService(server grpc.Server) {
 	// commontypes.RegisterQueryServer(server, am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the ibc-transfer module. It returns
-// no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState commontypes.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	am.keeper.InitGenesis(ctx, genesisState)
-	return []abci.ValidatorUpdate{}
+// QuerierRoute returns module name
+func (am AppModule) QuerierRoute() string {
+	return commontypes.ModuleName
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the ibc-transfer
@@ -187,6 +188,13 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
+}
+
+// InitGenesis inits genesis
+func (am AppModule) InitGenesis(ctx sdk.Context, m codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState commontypes.GenesisState
+	m.MustUnmarshalJSON(data, &genesisState)
+	return InitGenesis(ctx, am.keeper, genesisState)
 }
 
 //____________________________________________________________________________
@@ -214,11 +222,6 @@ func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
 }
 
-// WeightedOperations returns the all the transfer module operations with their respective weights.
-func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-	return nil
-}
-
 //____________________________________________________________________________
 
 // OnChanOpenInit implements the IBCModule interface
@@ -234,8 +237,8 @@ func (am AppModule) OnChanOpenInit(
 ) error {
 	// TODO: Enforce ordering, currently relayers use ORDERED channels
 
-	if counterparty.PortId != commontypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.PortId)
+	if counterparty.GetPortID() != commontypes.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.GetPortID())
 	}
 
 	if version != commontypes.Version {
@@ -264,8 +267,8 @@ func (am AppModule) OnChanOpenTry(
 ) error {
 	// TODO: Enforce ordering, currently relayers use ORDERED channels
 
-	if counterparty.PortId != commontypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.PortId)
+	if counterparty.GetPortID() != commontypes.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.GetPortID())
 	}
 
 	if version != commontypes.Version {

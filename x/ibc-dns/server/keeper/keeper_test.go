@@ -7,26 +7,21 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	clientexported "github.com/cosmos/cosmos-sdk/x/ibc/02-client/exported"
-	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/03-connection/types"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
-	ibctmtypes "github.com/cosmos/cosmos-sdk/x/ibc/07-tendermint/types"
-	tendermint "github.com/cosmos/cosmos-sdk/x/ibc/07-tendermint/types"
-	commitmentexported "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/exported"
-	commitment "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/types"
-	commitmenttypes "github.com/cosmos/cosmos-sdk/x/ibc/23-commitment/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp"
+	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/core/03-connection/types"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	commitmenttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/23-commitment/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp"
 )
 
 // define constants used for testing
 const (
-	testClientType     = clientexported.Tendermint
 	testChannelOrder   = channeltypes.UNORDERED
 	testChannelVersion = "1.0"
 )
@@ -68,7 +63,7 @@ func (a appContext) Cache() (appContext, func()) {
 func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string, skipIfClientExists bool) {
 	actx.app.Commit()
 
-	h := tmproto.Header{ChainID: actx.ctx.ChainID(), Height: actx.app.LastBlockHeight() + 1}
+	h := tmtypes.Header{ChainID: actx.ctx.ChainID(), Height: actx.app.LastBlockHeight() + 1}
 	actx.app.BeginBlock(abci.RequestBeginBlock{Header: h})
 	actx.ctx = actx.ctx.WithBlockHeader(h)
 	now := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
@@ -85,7 +80,7 @@ func (suite *KeeperTestSuite) createClient(actx *appContext, clientID string, sk
 		}
 	}
 
-	_, err := actx.app.IBCKeeper.ClientKeeper.CreateClient(actx.ctx, clientID, clientState, consensusState)
+	err = actx.app.IBCKeeper.ClientKeeper.CreateClient(actx.ctx, clientID, clientState, consensusState)
 	suite.NoError(err)
 }
 
@@ -105,22 +100,33 @@ func (suite *KeeperTestSuite) updateClient(actx *appContext, clientID string) {
 	actx.app.IBCKeeper.ClientKeeper.SetClientConsensusState(actx.ctx, clientID, uint64(h.Height)+1, state)
 }
 
-func (suite *KeeperTestSuite) createConnection(actx *appContext, clientID, connectionID, counterpartyClientID, counterpartyConnectionID string, state connectiontypes.State) {
-	connection := connectiontypes.ConnectionEnd{
-		State:    state,
-		ClientId: clientID,
-		Counterparty: connectiontypes.Counterparty{
-			ClientId:     counterpartyClientID,
-			ConnectionId: counterpartyConnectionID,
-			Prefix:       commitmenttypes.NewMerklePrefix(actx.app.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes()),
-		},
-		Versions: connectiontypes.GetCompatibleEncodedVersions(),
-	}
+func (suite *KeeperTestSuite) createConnection(
+	actx *appContext,
+	clientID,
+	connectionID,
+	counterpartyClientID,
+	counterpartyConnectionID string,
+	state connectiontypes.State,
+) {
+	prefix := actx.app.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix()
+
+	counterparty := connectiontypes.NewCounterparty(
+		counterpartyClientID,
+		counterpartyConnectionID,
+		commitmenttypes.NewMerklePrefix(prefix.Bytes()),
+	)
+
+	connection := connectiontypes.NewConnectionEnd(
+		state,
+		clientID,
+		counterparty,
+		connectiontypes.ExportedVersionsToProto(connectiontypes.GetCompatibleVersions()),
+	)
 
 	actx.app.IBCKeeper.ConnectionKeeper.SetConnection(actx.ctx, connectionID, connection)
 }
 
-func (suite *KeeperTestSuite) createChannel(actx *appContext, portID string, chanID string, connID string, counterpartyPort string, counterpartyChan string, state channeltypes.State) {
+func (suite *KeeperTestSuite) createChannel(actx *appContext, portID string, chanID string, connID string, counterpartyPort string, counterpartyChan string, state channelexported.State) {
 	ch := channeltypes.Channel{
 		State:    state,
 		Ordering: testChannelOrder,

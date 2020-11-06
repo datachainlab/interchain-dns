@@ -5,10 +5,11 @@ package types
 
 import (
 	fmt "fmt"
-	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+
+	proto "github.com/gogo/protobuf/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -22,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the ibc-dns genesis state
+// GenesisState defines the ibc-transfer genesis state
 type GenesisState struct {
 }
 

@@ -4,6 +4,8 @@ import (
 	"errors"
 	math "math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
@@ -32,19 +34,7 @@ func (p RegisterDomainPacketData) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketData) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
-}
-
-func (p RegisterDomainPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
-}
-
-func (p RegisterDomainPacketData) GetTimeoutTimestamp() uint64 {
-	return 0
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p RegisterDomainPacketData) Type() string {
@@ -69,11 +59,7 @@ func (p RegisterDomainPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketAcknowledgement) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p RegisterDomainPacketAcknowledgement) Type() string {
@@ -93,11 +79,7 @@ func (p DomainAssociationCreatePacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketData) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p DomainAssociationCreatePacketData) GetTimeoutHeight() uint64 {
@@ -125,11 +107,7 @@ func (p DomainAssociationCreatePacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) Type() string {
@@ -158,11 +136,7 @@ func (p DomainAssociationResultPacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketData) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {
@@ -190,11 +164,7 @@ func (p DomainAssociationResultPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) GetBytes() []byte {
-	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) Type() string {

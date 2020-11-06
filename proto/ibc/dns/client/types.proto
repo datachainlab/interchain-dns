@@ -4,7 +4,14 @@ package ibc.dns.client;
 option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types";
 
 import "gogoproto/gogo.proto";
+import "ibc/core/client/v1/client.proto";
 import "ibc/dns/common/types.proto";
+
+// Msg defines the ibc/transfer Msg service.
+service Msg {
+    rpc RegisterDomain(MsgRegisterDomain) returns (MsgRegisterDomainResponse);
+    rpc DomainAssociationCreate(MsgDomainAssociationCreate) returns (MsgDomainAssociationCreateResponse);
+}
 
 message MsgRegisterDomain {
     option (gogoproto.goproto_getters) = false;
@@ -18,16 +25,17 @@ message MsgRegisterDomain {
     ];
     string domain = 3;
     bytes metadata = 4;
-    bytes sender = 5 [
-        (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-    ];
+    bytes sender = 5;
+    ibc.core.client.v1.Height timeout_height = 6
+    [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+    uint64 timeout_timestamp = 7 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
 }
+
+message MsgRegisterDomainResponse { }
 
 message MsgDomainAssociationCreate {
     option (gogoproto.goproto_getters) = false;
-    bytes sender = 1 [
-        (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-    ];
+    bytes sender = 1;
     ibc.dns.common.LocalDNSID dns_id = 2 [
         (gogoproto.nullable) = false
     ];
@@ -37,4 +45,9 @@ message MsgDomainAssociationCreate {
     ibc.dns.common.ClientDomain dst_client = 4 [
         (gogoproto.nullable) = false
     ];
+    ibc.core.client.v1.Height timeout_height = 5
+    [(gogoproto.moretags) = "yaml:\"timeout_height\"", (gogoproto.nullable) = false];
+    uint64 timeout_timestamp = 6 [(gogoproto.moretags) = "yaml:\"timeout_timestamp\""];
 }
+
+message MsgDomainAssociationCreateResponse { }
