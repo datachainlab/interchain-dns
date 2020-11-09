@@ -23,14 +23,4 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*PacketAcknowledgementI)(nil), nil)
 }
 
-func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	registry.RegisterInterface(
-		"datachainlab.ibc.dns.v1beta1.PacketDataI",
-		(*PacketDataI)(nil),
-	)
-
-	registry.RegisterInterface(
-		"datachainlab.ibc.dns.v1beta1.PacketAcknowledgementI",
-		(*PacketAcknowledgementI)(nil),
-	)
-}
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {}

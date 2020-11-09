@@ -34,9 +34,9 @@ func NewHandler(keeper types.MsgServer) sdk.Handler {
 // NewPacketReceiver returns a new PacketReceiver
 func NewPacketReceiver(keeper keeper.Keeper) commontypes.PacketReceiver {
 	return func(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, []byte, error) {
-		var data commontypes.PacketDataI
-		if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), data); err != nil {
-			return nil, nil, commontypes.ErrUnknownRequest
+		data, err := commontypes.DeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData())
+		if err != nil {
+			return nil, nil, err
 		}
 		switch data := data.(type) {
 		case *servertypes.DomainAssociationResultPacketData:
@@ -76,13 +76,9 @@ func handleDomainAssociationResultPacketData(
 // NewPacketAcknowledgementReceiver returns a new PacketAcknowledgementReceiver
 func NewPacketAcknowledgementReceiver(keeper keeper.Keeper) commontypes.PacketAcknowledgementReceiver {
 	return func(ctx sdk.Context, packet channeltypes.Packet, ack []byte) (*sdk.Result, error) {
-		var data commontypes.PacketDataI
-		if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), data); err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet type: %T", packet)
-		}
-		var ackData commontypes.PacketAcknowledgementI
-		if err := types.ModuleCdc.UnmarshalJSON(ack, ackData); err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized IBC packet acknowledgement type: %T\": %v", err, "ack", ack)
+		ackData, err := commontypes.DeserializeJSONPacketAck(servertypes.PacketCdc(), packet.GetData())
+		if err != nil {
+			return nil, err
 		}
 		switch ackData := ackData.(type) {
 		case *servertypes.RegisterDomainPacketAcknowledgement:

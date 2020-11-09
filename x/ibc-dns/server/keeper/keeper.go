@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -18,6 +19,7 @@ import (
 
 // Keeper defines ibc-dns keeper
 type Keeper struct {
+	cdc           codec.BinaryMarshaler
 	storeKey      sdk.StoreKey
 	channelKeeper types.ChannelKeeper
 	scopedKeeper  capabilitykeeper.ScopedKeeper
@@ -25,11 +27,13 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc-dns Keeper
 func NewKeeper(
+	cdc codec.BinaryMarshaler,
 	storeKey sdk.StoreKey,
 	channelKeeper types.ChannelKeeper,
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
+		cdc:           cdc,
 		storeKey:      storeKey,
 		channelKeeper: channelKeeper,
 		scopedKeeper:  scopedKeeper,
@@ -218,6 +222,10 @@ func (k Keeper) ReverseLookupDomain(ctx sdk.Context, port, channel string) (stri
 		return "", fmt.Errorf("failed to reverseLookup: port=%v channel=%v", port, channel)
 	}
 	return string(name), nil
+}
+
+func (k Keeper) Codec() codec.BinaryMarshaler {
+	return k.cdc
 }
 
 // Logger returns a module-specific logger.

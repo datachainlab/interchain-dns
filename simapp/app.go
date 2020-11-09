@@ -308,11 +308,13 @@ func NewSimApp(
 
 	app.DNSKeeper = dnskeeper.NewKeeper(app.IBCKeeper.PortKeeper, scopedDNSKeeper)
 	app.DNSServerKeeper = dnsserverkeeper.NewKeeper(
+		appCodec,
 		keys[dnsservertypes.StoreKey],
 		app.IBCKeeper.ChannelKeeper,
 		scopedDNSKeeper,
 	)
 	app.DNSClientKeeper = dnsclientkeeper.NewKeeper(
+		appCodec,
 		keys[dnsclienttypes.StoreKey],
 		app.IBCKeeper.ClientKeeper,
 		app.IBCKeeper.ConnectionKeeper,

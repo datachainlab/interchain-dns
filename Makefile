@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	go build -mod readonly -o build/simd ./simapp/simd/cmd
+	go build -mod readonly -o build/simd ./simapp/simd
 
 .PHONY: protoc
 protoc:

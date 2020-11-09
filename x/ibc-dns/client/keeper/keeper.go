@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
@@ -19,6 +20,7 @@ import (
 
 // Keeper defines ibc-dns keeper
 type Keeper struct {
+	cdc              codec.BinaryMarshaler
 	storeKey         sdk.StoreKey
 	clientKeeper     types.ClientKeeper
 	connectionKeeper types.ConnectionKeeper
@@ -28,6 +30,7 @@ type Keeper struct {
 
 // NewKeeper creates a new ibc-dns Keeper
 func NewKeeper(
+	cdc codec.BinaryMarshaler,
 	storeKey sdk.StoreKey,
 	clientKeeper types.ClientKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -35,6 +38,7 @@ func NewKeeper(
 	scopedKeeper capabilitykeeper.ScopedKeeper,
 ) Keeper {
 	return Keeper{
+		cdc:              cdc,
 		storeKey:         storeKey,
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
@@ -224,6 +228,10 @@ func (k Keeper) setSelfDomainName(ctx sdk.Context, dnsID types.LocalDNSID, domai
 	key := clienttypes.KeySelfDomain(dnsID)
 	store.Set(key, []byte(domain))
 	return nil
+}
+
+func (k Keeper) Codec() codec.BinaryMarshaler {
+	return k.cdc
 }
 
 // Logger returns a module-specific logger.

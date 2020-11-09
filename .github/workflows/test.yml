@@ -6,16 +6,21 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
-    - name: Set up Go 1.14
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.14
-      id: go
-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
-
+    - name: Setup Go environment
+      uses: actions/setup-go@v2.1.3
+      with:
+        go-version: 1.15
+      id: go
+    - name: cache
+      id: cache
+      uses: actions/cache@v2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
     - name: Build
       run: make build
     

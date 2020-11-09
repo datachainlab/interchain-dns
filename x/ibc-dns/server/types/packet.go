@@ -34,7 +34,11 @@ func (p RegisterDomainPacketData) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p RegisterDomainPacketData) Type() string {
@@ -107,7 +111,11 @@ func (p DomainAssociationCreatePacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) Type() string {
@@ -136,7 +144,12 @@ func (p DomainAssociationResultPacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {
@@ -164,7 +177,11 @@ func (p DomainAssociationResultPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) Type() string {
