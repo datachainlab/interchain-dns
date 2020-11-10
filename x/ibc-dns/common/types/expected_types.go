@@ -6,7 +6,6 @@ import (
 
 type PacketDataI interface {
 	proto.Message
-
 	ValidateBasic() error
 	GetBytes() []byte
 	Type() string
@@ -14,7 +13,6 @@ type PacketDataI interface {
 
 type PacketAcknowledgementI interface {
 	proto.Message
-
 	ValidateBasic() error
 	GetBytes() []byte
 	Type() string

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 

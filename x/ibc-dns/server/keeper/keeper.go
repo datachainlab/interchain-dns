@@ -191,7 +191,7 @@ func (k Keeper) SendDomainAssociationResultPacketData(
 	return nil
 }
 
-// GetLocalDNSID returns a local DNS-Channel corresponding to given name
+// GetLocalDNSID returns a local DNS-ID corresponding to given name
 func (k Keeper) GetLocalDNSID(ctx sdk.Context, name string) (*types.LocalDNSID, error) {
 	c, err := k.ForwardLookupDomain(ctx, name)
 	if err != nil {

@@ -232,6 +232,7 @@ func NewSimApp(
 		invCheckPeriod:    invCheckPeriod,
 		keys:              keys,
 		tkeys:             tkeys,
+		memKeys:           memKeys,
 	}
 
 	// init params keeper and subspaces

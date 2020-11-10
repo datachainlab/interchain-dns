@@ -2,9 +2,7 @@ package types
 
 import (
 	"errors"
-	math "math"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"math"
 
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
@@ -63,7 +61,11 @@ func (p RegisterDomainPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p RegisterDomainPacketAcknowledgement) Type() string {
@@ -83,7 +85,11 @@ func (p DomainAssociationCreatePacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p DomainAssociationCreatePacketData) GetTimeoutHeight() uint64 {
@@ -149,7 +155,6 @@ func (p DomainAssociationResultPacketData) GetBytes() []byte {
 		panic(err)
 	}
 	return bz
-
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {

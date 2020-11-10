@@ -134,7 +134,6 @@ func (k Keeper) ReceiveDomainAssociationResultPacketData(
 	}
 
 	store := ctx.KVStore(k.storeKey)
-
 	bz0, err := proto.Marshal(&data.CounterpartyDomain.DNSID)
 	if err != nil {
 		return err
@@ -155,7 +154,7 @@ func (k Keeper) GetSelfDomainName(ctx sdk.Context, dnsID types.LocalDNSID) (stri
 	return string(domain), true
 }
 
-// ResolveDNSID returns local DNS-Channel corresponding to given a domain info
+// ResolveDNSID returns local DNS-ID corresponding to given a domain info
 func (k Keeper) ResolveDNSID(ctx sdk.Context, domain types.LocalDomain) (types.LocalDNSID, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(clienttypes.KeyLocalDNSID(domain.DNSID, domain.Name))

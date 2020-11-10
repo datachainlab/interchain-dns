@@ -65,12 +65,11 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 		0,
 	)
 	require.NoError(err)
-	var data0 dnsservertypes.RegisterDomainPacketData
-	require.NoError(suite.app1.App.AppCodec().UnmarshalJSON(p0.Data, &data0))
+	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
 	require.Error(suite.dns0.App.DNSServerKeeper.ReceivePacketRegisterDomain(
 		suite.dns0.GetContext(),
 		*p0,
-		&data0,
+		data0,
 	))
 	require.NoError(suite.app1.App.DNSClientKeeper.ReceiveRegisterDomainPacketAcknowledgement(
 		suite.app1.GetContext(),
@@ -114,12 +113,11 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(suite.app0.App.AppCodec().UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
-			&data,
+			data,
 		)
 		require.False(completed)
 		require.Equal(ack.Status, servertypes.STATUS_OK)
@@ -139,12 +137,11 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(suite.app1.App.AppCodec().UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
-			&data,
+			data,
 		)
 		require.True(completed)
 		require.Equal(ack.Status, servertypes.STATUS_OK)
@@ -162,13 +159,12 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		var srcData, dstData servertypes.DomainAssociationResultPacketData
-		require.NoError(suite.dns0.App.AppCodec().UnmarshalJSON(srcPacket.Data, &srcData))
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(suite.app1.ChainID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		require.NoError(suite.dns0.App.AppCodec().UnmarshalJSON(dstPacket.Data, &dstData))
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.ChainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
@@ -178,14 +174,14 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			suite.app0.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
 				suite.app0.GetContext(),
 				*dstPacket,
-				&dstData,
+				dstData,
 			),
 		)
 		require.NoError(
 			suite.app1.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
 				suite.app1.GetContext(),
 				*srcPacket,
-				&srcData,
+				srcData,
 			),
 		)
 
@@ -287,12 +283,11 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(suite.app0.App.AppCodec().UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
-			&data,
+			data,
 		)
 		require.False(completed)
 		require.Equal(ack.Status, servertypes.STATUS_OK)
@@ -311,12 +306,11 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
-		var data dnsservertypes.DomainAssociationCreatePacketData
-		require.NoError(suite.app1.App.AppCodec().UnmarshalJSON(packet.Data, &data))
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
-			&data,
+			data,
 		)
 		require.True(completed)
 		require.Equal(ack.Status, servertypes.STATUS_OK)
@@ -334,13 +328,12 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		var srcData, dstData servertypes.DomainAssociationResultPacketData
-		require.NoError(suite.dns0.App.AppCodec().UnmarshalJSON(srcPacket.Data, &srcData))
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(app1ClientID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		require.NoError(suite.dns0.App.AppCodec().UnmarshalJSON(dstPacket.Data, &dstData))
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.ChainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
@@ -350,14 +343,14 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			suite.app0.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
 				suite.app0.GetContext(),
 				*dstPacket,
-				&dstData,
+				dstData,
 			),
 		)
 		require.NoError(
 			suite.app1.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
 				suite.app1.GetContext(),
 				*srcPacket,
-				&srcData,
+				srcData,
 			),
 		)
 
@@ -448,12 +441,11 @@ func (suite *DNSKeeperTestSuite) registerDomain(
 		0,
 	)
 	require.NoError(err)
-	var data0 dnsservertypes.RegisterDomainPacketData
-	require.NoError(chain.App.AppCodec().UnmarshalJSON(p0.Data, &data0))
+	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
 	require.NoError(suite.dns0.App.DNSServerKeeper.ReceivePacketRegisterDomain(
 		suite.dns0.GetContext(),
 		*p0,
-		&data0,
+		data0,
 	))
 	require.NoError(chain.App.DNSClientKeeper.ReceiveRegisterDomainPacketAcknowledgement(
 		chain.GetContext(),

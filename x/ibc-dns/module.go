@@ -2,6 +2,7 @@ package dns
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -57,13 +58,7 @@ func (AppModuleBasic) Name() string {
 	return commontypes.ModuleName
 }
 
-func (b AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
-
-func (b AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
-	types.RegisterInterfaces(registry)
-}
+func (b AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // transfer module.
@@ -71,15 +66,13 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 	return cdc.MustMarshalJSON(commontypes.DefaultGenesisState())
 }
 
-// ValidateGenesis checks the Genesis
-func (AppModuleBasic) ValidateGenesis(m codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var data commontypes.GenesisState
-	err := m.UnmarshalJSON(bz, &data)
-	if err != nil {
-		return err
+// ValidateGenesis performs genesis state validation for the ibc transfer module.
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var gs commontypes.GenesisState
+	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
+		return fmt.Errorf("failed to unmarshal %s genesis state: %w", commontypes.ModuleName, err)
 	}
-
-	return data.Validate()
+	return gs.Validate()
 }
 
 // RegisterRESTRoutes implements AppModuleBasic interface
@@ -89,14 +82,21 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 func (b AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, serveMux *runtime.ServeMux) {
 }
 
+// GetTxCmd implements AppModuleBasic interface
 func (b AppModuleBasic) GetTxCmd() *cobra.Command {
-	//TODO
+	// return cli.NewTxCmd()
 	return nil
 }
 
+// GetQueryCmd implements AppModuleBasic interface
 func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
-	//TODO
+	// return cli.GetQueryCmd()
 	return nil
+}
+
+// RegisterInterfaces registers module concrete types into protobuf Any.
+func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 // AppModule struct
@@ -140,22 +140,22 @@ func NewAppModule(k dnskeeper.Keeper, ck *clientkeeper.Keeper, sk *serverkeeper.
 	}
 }
 
-// Name returns module name
-func (AppModule) Name() string {
-	return commontypes.ModuleName
+// RegisterInvariants implements the AppModule interface
+func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	// TODO
 }
 
 func (am AppModule) Route() sdk.Route {
 	return sdk.NewRoute(commontypes.RouterKey, am.handler)
 }
 
-func (am AppModule) RegisterServices(configurator module.Configurator) {
-	return
+// QuerierRoute returns module name
+func (am AppModule) QuerierRoute() string {
+	return commontypes.QuerierRoute
 }
 
-// RegisterInvariants implements the AppModule interface
-func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	// TODO
+func (am AppModule) RegisterServices(configurator module.Configurator) {
+	return
 }
 
 // LegacyQuerierHandler implements the AppModule interface
@@ -169,9 +169,13 @@ func (am AppModule) RegisterQueryService(server grpc.Server) {
 	// commontypes.RegisterQueryServer(server, am.keeper)
 }
 
-// QuerierRoute returns module name
-func (am AppModule) QuerierRoute() string {
-	return commontypes.ModuleName
+// InitGenesis performs genesis initialization for the ibc-transfer module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState commontypes.GenesisState
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	am.keeper.InitGenesis(ctx, genesisState)
+	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the ibc-transfer
@@ -188,13 +192,6 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
-}
-
-// InitGenesis inits genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, m codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState commontypes.GenesisState
-	m.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.keeper, genesisState)
 }
 
 //____________________________________________________________________________
@@ -220,6 +217,11 @@ func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 // RegisterStoreDecoder registers a decoder for transfer module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
 	// sdr[types.StoreKey] = simulation.NewDecodeStore(am.keeper)
+}
+
+// WeightedOperations returns the all the transfer module operations with their respective weights.
+func (am AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
+	return nil
 }
 
 //____________________________________________________________________________

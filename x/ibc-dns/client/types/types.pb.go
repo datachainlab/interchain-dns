@@ -6,10 +6,6 @@ package types
 import (
 	context "context"
 	fmt "fmt"
-	io "io"
-	math "math"
-	math_bits "math/bits"
-
 	types "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	types1 "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -18,6 +14,9 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	io "io"
+	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -283,13 +282,11 @@ func (c *msgClient) DomainAssociationCreate(ctx context.Context, in *MsgDomainAs
 	return out, nil
 }
 
-type (
-	// MsgServer is the server API for Msg service.
-	MsgServer interface {
-		RegisterDomain(context.Context, *MsgRegisterDomain) (*MsgRegisterDomainResponse, error)
-		DomainAssociationCreate(context.Context, *MsgDomainAssociationCreate) (*MsgDomainAssociationCreateResponse, error)
-	}
-)
+// MsgServer is the server API for Msg service.
+type MsgServer interface {
+	RegisterDomain(context.Context, *MsgRegisterDomain) (*MsgRegisterDomainResponse, error)
+	DomainAssociationCreate(context.Context, *MsgDomainAssociationCreate) (*MsgDomainAssociationCreateResponse, error)
+}
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
 type UnimplementedMsgServer struct {
