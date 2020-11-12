@@ -54,8 +54,6 @@ func (k Keeper) SendPacketRegisterDomain(
 	sourcePort string,
 	sourceChannel string,
 	metadata []byte,
-	timeoutHeight ibcclienttypes.Height,
-	timeoutTimestamp uint64,
 ) (*channeltypes.Packet, error) {
 	data := servertypes.NewRegisterDomainPacketData(name, metadata)
 	c, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
@@ -68,7 +66,8 @@ func (k Keeper) SendPacketRegisterDomain(
 		sourcePort, sourceChannel,
 		c.GetCounterparty().GetPortID(),
 		c.GetCounterparty().GetChannelID(),
-		timeoutHeight, timeoutTimestamp,
+		data.GetTimeoutHeight(),
+		data.GetTimeoutTimestamp(),
 	)
 }
 
@@ -87,8 +86,6 @@ func (k Keeper) SendDomainAssociationCreatePacketData(
 	dnsID types.LocalDNSID,
 	srcClient types.ClientDomain,
 	dstClient types.ClientDomain,
-	timeoutHeight ibcclienttypes.Height,
-	timeoutTimestamp uint64,
 ) (*channeltypes.Packet, error) {
 	_, found := k.GetSelfDomainName(ctx, dnsID)
 	if !found {
@@ -105,9 +102,12 @@ func (k Keeper) SendDomainAssociationCreatePacketData(
 	}
 	return k.sendPacket(
 		ctx, data.GetBytes(),
-		dnsID.SourcePort, dnsID.SourceChannel,
-		c.GetCounterparty().GetPortID(), c.GetCounterparty().GetChannelID(),
-		timeoutHeight, timeoutTimestamp,
+		dnsID.SourcePort,
+		dnsID.SourceChannel,
+		c.GetCounterparty().GetPortID(),
+		c.GetCounterparty().GetChannelID(),
+		data.GetTimeoutHeight(),
+		data.GetTimeoutTimestamp(),
 	)
 }
 

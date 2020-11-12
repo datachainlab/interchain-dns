@@ -520,14 +520,6 @@ func (chain *TestChain) ConstructUpdateTMClientHeader(counterparty *TestChain, c
 
 }
 
-func (chain *TestChain) GetTimeoutHeight(clientID string, offsetHeight uint64) clienttypes.Height {
-	trustedHeight := chain.GetClientState(clientID).GetLatestHeight()
-	return clienttypes.NewHeight(
-		trustedHeight.GetVersionNumber(),
-		trustedHeight.GetVersionHeight()+offsetHeight,
-	)
-}
-
 // ExpireClient fast forwards the chain's block time by the provided amount of time which will
 // expire any clients with a trusting period less than or equal to this amount of time.
 func (chain *TestChain) ExpireClient(amount time.Duration) {

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math"
 
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
@@ -37,6 +39,14 @@ func (p RegisterDomainPacketData) GetBytes() []byte {
 		panic(err)
 	}
 	return bz
+}
+
+func (p RegisterDomainPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
+}
+
+func (p RegisterDomainPacketData) GetTimeoutTimestamp() uint64 {
+	return 0
 }
 
 func (p RegisterDomainPacketData) Type() string {
@@ -92,8 +102,8 @@ func (p DomainAssociationCreatePacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationCreatePacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationCreatePacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationCreatePacketData) GetTimeoutTimestamp() uint64 {

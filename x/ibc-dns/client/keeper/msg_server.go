@@ -18,9 +18,9 @@ func (k Keeper) RegisterDomain(goCtx context.Context, msg *types.MsgRegisterDoma
 	_, err := k.SendPacketRegisterDomain(
 		ctx,
 		msg.Domain,
-		msg.SourcePort, msg.SourceChannel,
+		msg.SourcePort,
+		msg.SourceChannel,
 		msg.Metadata,
-		msg.TimeoutHeight, msg.TimeoutTimestamp,
 	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'PacketRegisterChannelDomain': %v", err)
@@ -43,8 +43,8 @@ func (k Keeper) DomainAssociationCreate(goCtx context.Context, msg *types.MsgDom
 	_, err := k.SendDomainAssociationCreatePacketData(
 		ctx,
 		msg.DnsId,
-		msg.SrcClient, msg.DstClient,
-		msg.TimeoutHeight, msg.TimeoutTimestamp,
+		msg.SrcClient,
+		msg.DstClient,
 	)
 	if err != nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'DomainAssociationCreatePacketData': %v", err)

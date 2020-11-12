@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"math"
 	"testing"
 
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
@@ -61,8 +63,6 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 		suite.chA1toD0.Port,
 		suite.chA1toD0.Channel,
 		[]byte("memo"),
-		suite.app1.GetTimeoutHeight(suite.dns0.ChainID, 1),
-		0,
 	)
 	require.NoError(err)
 	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
@@ -107,8 +107,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			dnsID0,
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
-			suite.app0.GetTimeoutHeight(suite.dns0.ChainID, 1),
-			0,
 		)
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
@@ -131,8 +129,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			dnsID1,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
-			suite.app1.GetTimeoutHeight(suite.dns0.ChainID, 1),
-			0,
 		)
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
@@ -154,7 +150,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
-			suite.dns0.GetTimeoutHeight(suite.app0.ChainID, 1),
+			ibcclienttypes.NewHeight(0, math.MaxInt64),
 			0,
 		)
 		require.NoError(err)
@@ -277,8 +273,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			dnsID0,
 			types.NewClientDomain(app0Name, app1ClientID),
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
-			suite.app0.GetTimeoutHeight(suite.dns0.ChainID, 1),
-			0,
 		)
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
@@ -300,8 +294,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			dnsID1,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, app1ClientID),
-			suite.app1.GetTimeoutHeight(suite.dns0.ChainID, 1),
-			0,
 		)
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
@@ -323,7 +315,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, app1ClientID),
-			suite.dns0.GetTimeoutHeight(suite.app0.ChainID, 1),
+			ibcclienttypes.NewHeight(0, math.MaxInt64),
 			0,
 		)
 		require.NoError(err)
@@ -437,8 +429,6 @@ func (suite *DNSKeeperTestSuite) registerDomain(
 		srcch.Port,
 		srcch.Channel,
 		[]byte("memo"),
-		chain.GetTimeoutHeight(suite.dns0.ChainID, 1),
-		0,
 	)
 	require.NoError(err)
 	data0 := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), p0.GetData()).(*dnsservertypes.RegisterDomainPacketData)
