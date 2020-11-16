@@ -47,11 +47,7 @@ func (k Keeper) ReceivePacketRegisterDomain(ctx sdk.Context, packet channeltypes
 }
 
 // ReceiveDomainAssociationCreatePacketData receives a DomainAssociationCreatePacketData to associate domain with client
-func (k Keeper) ReceiveDomainAssociationCreatePacketData(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	data *servertypes.DomainAssociationCreatePacketData,
-) (ack servertypes.DomainAssociationCreatePacketAcknowledgement, completed bool) {
+func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet channeltypes.Packet, data *servertypes.DomainAssociationCreatePacketData) (ack servertypes.DomainAssociationCreatePacketAcknowledgement, completed bool) {
 	// check if counterparty domain exists
 	_, err := k.ForwardLookupDomain(ctx, data.DstClient.DomainName)
 	if err != nil {
@@ -91,13 +87,7 @@ func (k Keeper) ReceiveDomainAssociationCreatePacketData(
 }
 
 // CreateDomainAssociationResultPacketData creates a packet 'DomainAssociationResultPacketData'
-func (k Keeper) CreateDomainAssociationResultPacketData(
-	ctx sdk.Context,
-	status uint32,
-	srcClientDomain, dstClientDomain types.ClientDomain,
-	timeoutHeight ibcclienttypes.Height,
-	timeoutTimestamp uint64,
-) (srcPacket *channeltypes.Packet, dstPacket *channeltypes.Packet, err error) {
+func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) (srcPacket *channeltypes.Packet, dstPacket *channeltypes.Packet, err error) {
 	srcLocalDNSID, err := k.GetLocalDNSID(ctx, srcClientDomain.DomainName)
 	if err != nil {
 		return
@@ -139,8 +129,8 @@ func (k Keeper) CreateDomainAssociationResultPacketData(
 		srcChannel.DestinationChannel,
 		srcChannel.SourcePort,
 		srcChannel.SourceChannel,
-		timeoutHeight,
-		timeoutTimestamp,
+		toSrcData.GetTimeoutHeight(),
+		toSrcData.GetTimeoutTimestamp(),
 	)
 	if err != nil {
 		return
@@ -153,8 +143,8 @@ func (k Keeper) CreateDomainAssociationResultPacketData(
 		dstChannel.DestinationChannel,
 		dstChannel.SourcePort,
 		dstChannel.SourceChannel,
-		timeoutHeight,
-		timeoutTimestamp,
+		toDstData.GetTimeoutHeight(),
+		toDstData.GetTimeoutTimestamp(),
 	)
 	if err != nil {
 		return
@@ -164,21 +154,8 @@ func (k Keeper) CreateDomainAssociationResultPacketData(
 }
 
 // SendDomainAssociationResultPacketData sends a result of the domain association
-func (k Keeper) SendDomainAssociationResultPacketData(
-	ctx sdk.Context,
-	status uint32,
-	srcClientDomain, dstClientDomain types.ClientDomain,
-	timeoutHeight ibcclienttypes.Height,
-	timeoutTimestamp uint64,
-) error {
-	srcPacket, dstPacket, err := k.CreateDomainAssociationResultPacketData(
-		ctx,
-		status,
-		srcClientDomain,
-		dstClientDomain,
-		timeoutHeight,
-		timeoutTimestamp,
-	)
+func (k Keeper) SendDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) error {
+	srcPacket, dstPacket, err := k.CreateDomainAssociationResultPacketData(ctx, status, srcClientDomain, dstClientDomain)
 	if err != nil {
 		return err
 	}

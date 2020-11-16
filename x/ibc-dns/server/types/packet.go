@@ -167,8 +167,8 @@ func (p DomainAssociationResultPacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationResultPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutTimestamp() uint64 {

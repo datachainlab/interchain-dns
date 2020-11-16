@@ -1,10 +1,8 @@
 package keeper_test
 
 import (
-	"math"
 	"testing"
 
-	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 	"github.com/stretchr/testify/suite"
 
@@ -150,8 +148,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
-			ibcclienttypes.NewHeight(0, math.MaxInt64),
-			0,
 		)
 		require.NoError(err)
 
@@ -315,8 +311,6 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 			types.NewClientDomain(app0Name, app1ClientID),
-			ibcclienttypes.NewHeight(0, math.MaxInt64),
-			0,
 		)
 		require.NoError(err)
 
