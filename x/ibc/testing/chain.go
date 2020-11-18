@@ -24,7 +24,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/core/03-connection/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
@@ -703,7 +702,7 @@ func (chain *TestChain) ConnectionOpenConfirm(
 
 // CreatePortCapability binds and claims a capability for the given portID if it does not
 // already exist. This function will fail testing on any resulting error.
-// NOTE: only creation of a capbility for a transfer or mock port is supported
+// NOTE: only creation of a capbility for a dns or mock port is supported
 // Other applications must bind to the port in InitGenesis or modify this code.
 func (chain *TestChain) CreatePortCapability(portID string) {
 	// check if the portId is already binded, if not bind it
@@ -723,7 +722,7 @@ func (chain *TestChain) CreatePortCapability(portID string) {
 			err = chain.App.ScopedDNSKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 			require.NoError(chain.t, err)
 		default:
-			panic(fmt.Sprintf("unsupported ibc testing package port Channel %s", portID))
+			panic(fmt.Sprintf("unsupported ibc testing package port ID %s", portID))
 		}
 	}
 
@@ -848,19 +847,6 @@ func (chain *TestChain) ChanCloseInit(
 	return chain.sendMsgs(msg)
 }
 
-// GetPacketData returns a ibc-transfer marshalled packet to be used for
-// callback testing.
-func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
-	packet := ibctransfertypes.FungibleTokenPacketData{
-		Denom:    TestCoin.Denom,
-		Amount:   TestCoin.Amount.Uint64(),
-		Sender:   chain.SenderAccount.GetAddress().String(),
-		Receiver: counterparty.SenderAccount.GetAddress().String(),
-	}
-
-	return packet.GetBytes()
-}
-
 // SendPacket simulates sending a packet through the channel keeper. No message needs to be
 // passed since this call is made from a module.
 func (chain *TestChain) SendPacket(
@@ -881,51 +867,14 @@ func (chain *TestChain) SendPacket(
 	return nil
 }
 
-// WriteReceipt simulates receiving and writing a receipt to the chain.
-func (chain *TestChain) WriteReceipt(
+// WriteAcknowledgement simulates writing an acknowledgement to the chain.
+func (chain *TestChain) WriteAcknowledgement(
 	packet exported.PacketI,
 ) error {
 	channelCap := chain.GetChannelCapability(packet.GetDestPort(), packet.GetDestChannel())
 
 	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.ChannelKeeper.WriteReceipt(chain.GetContext(), channelCap, packet)
-	if err != nil {
-		return err
-	}
-
-	// commit changes
-	chain.App.Commit()
-	chain.NextBlock()
-
-	return nil
-}
-
-// WriteAcknowledgement simulates writing an acknowledgement to the chain.
-func (chain *TestChain) WriteAcknowledgement(
-	packet exported.PacketI,
-) error {
-	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.ChannelKeeper.WriteAcknowledgement(chain.GetContext(), packet, TestHash)
-	if err != nil {
-		return err
-	}
-
-	// commit changes
-	chain.App.Commit()
-	chain.NextBlock()
-
-	return nil
-}
-
-// AcknowledgementExecuted simulates deleting a packet commitment with the
-// given packet sequence.
-func (chain *TestChain) AcknowledgementExecuted(
-	packet exported.PacketI,
-) error {
-	channelCap := chain.GetChannelCapability(packet.GetSourcePort(), packet.GetSourceChannel())
-
-	// no need to send message, acting as a handler
-	err := chain.App.IBCKeeper.ChannelKeeper.AcknowledgementExecuted(chain.GetContext(), channelCap, packet)
+	err := chain.App.IBCKeeper.ChannelKeeper.WriteAcknowledgement(chain.GetContext(), channelCap, packet, TestHash)
 	if err != nil {
 		return err
 	}
