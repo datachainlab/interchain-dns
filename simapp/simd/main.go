@@ -3,12 +3,19 @@ package main
 import (
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/server"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp/simd/cmd"
 )
 
 func main() {
 	rootCmd, _ := cmd.NewRootCmd()
 	if err := cmd.Execute(rootCmd); err != nil {
-		os.Exit(1)
+		switch e := err.(type) {
+		case server.ErrorCode:
+			os.Exit(e.Code)
+		default:
+			os.Exit(1)
+		}
 	}
 }

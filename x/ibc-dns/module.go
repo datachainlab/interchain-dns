@@ -13,18 +13,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
-	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
-	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
-	"github.com/gogo/protobuf/grpc"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/05-port/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"google.golang.org/grpc"
+
+	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
+	clientkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/keeper"
+	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
+	dnskeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
+	dnsserver "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
+	serverkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/keeper"
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
 )
 
 const (
@@ -53,8 +58,7 @@ func (AppModuleBasic) Name() string {
 	return commontypes.ModuleName
 }
 
-// RegisterCodec implements AppModuleBasic interface
-func (AppModuleBasic) RegisterCodec(*codec.LegacyAmino) {}
+func (b AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // DefaultGenesis returns default genesis state as raw bytes for the ibc
 // transfer module.
@@ -68,7 +72,6 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 	if err := cdc.UnmarshalJSON(bz, &gs); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", commontypes.ModuleName, err)
 	}
-
 	return gs.Validate()
 }
 
@@ -76,18 +79,17 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, config client.TxE
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
 }
 
-// RegisterGRPCRoutes registers the gRPC Gateway routes for the ibc-transfer module.
-func (a AppModuleBasic) RegisterGRPCRoutes(_ client.Context, _ *runtime.ServeMux) {
+func (b AppModuleBasic) RegisterGRPCGatewayRoutes(ctx client.Context, serveMux *runtime.ServeMux) {
 }
 
 // GetTxCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetTxCmd() *cobra.Command {
+func (b AppModuleBasic) GetTxCmd() *cobra.Command {
 	// return cli.NewTxCmd()
 	return nil
 }
 
 // GetQueryCmd implements AppModuleBasic interface
-func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+func (b AppModuleBasic) GetQueryCmd() *cobra.Command {
 	// return cli.GetQueryCmd()
 	return nil
 }
@@ -100,32 +102,33 @@ func (AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry) 
 // AppModule struct
 type AppModule struct {
 	AppModuleBasic
-	keeper                        Keeper
+	keeper                        keeper.Keeper
 	handler                       sdk.Handler
 	querier                       sdk.Querier
-	packetReceiver                PacketReceiver
-	packetAcknowledgementReceiver PacketAcknowledgementReceiver
+	packetReceiver                commontypes.PacketReceiver
+	packetAcknowledgementReceiver commontypes.PacketAcknowledgementReceiver
 }
 
 // NewAppModule creates a new AppModule Object
-func NewAppModule(k Keeper, ck *dnsclient.Keeper, sk *server.Keeper) AppModule {
+func NewAppModule(k dnskeeper.Keeper, ck *clientkeeper.Keeper, sk *serverkeeper.Keeper) AppModule {
 	var (
 		flags uint8
 		hs    []sdk.Handler
 		qs    []sdk.Querier
-		rs    []PacketReceiver
-		as    []PacketAcknowledgementReceiver
+		rs    []commontypes.PacketReceiver
+		as    []commontypes.PacketAcknowledgementReceiver
 	)
 	if ck != nil {
 		flags |= flagClient
 		hs = append(hs, dnsclient.NewHandler(*ck))
 		rs = append(rs, dnsclient.NewPacketReceiver(*ck))
+		as = append(as, dnsclient.NewPacketAcknowledgementReceiver(*ck))
 	}
 	if sk != nil {
 		flags |= flagServer
-		qs = append(qs, server.NewQuerier(*sk))
-		rs = append(rs, server.NewPacketReceiver(*sk))
-		as = append(as, server.NewPacketAcknowledgementReceiver(*sk))
+		qs = append(qs, serverkeeper.NewQuerier(*sk))
+		rs = append(rs, dnsserver.NewPacketReceiver(*sk))
+		as = append(as, dnsserver.NewPacketAcknowledgementReceiver(*sk))
 	}
 	return AppModule{
 		AppModuleBasic:                NewAppModuleBasic(flags),
@@ -142,14 +145,17 @@ func (AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 	// TODO
 }
 
-// Route implements the AppModule interface
 func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(RouterKey, am.handler)
+	return sdk.NewRoute(commontypes.RouterKey, am.handler)
 }
 
-// QuerierRoute implements the AppModule interface
-func (AppModule) QuerierRoute() string {
+// QuerierRoute returns module name
+func (am AppModule) QuerierRoute() string {
 	return commontypes.QuerierRoute
+}
+
+func (am AppModule) RegisterServices(configurator module.Configurator) {
+	return
 }
 
 // LegacyQuerierHandler implements the AppModule interface
@@ -233,8 +239,8 @@ func (am AppModule) OnChanOpenInit(
 ) error {
 	// TODO: Enforce ordering, currently relayers use ORDERED channels
 
-	if counterparty.PortId != commontypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.PortId)
+	if counterparty.GetPortID() != commontypes.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.GetPortID())
 	}
 
 	if version != commontypes.Version {
@@ -263,8 +269,8 @@ func (am AppModule) OnChanOpenTry(
 ) error {
 	// TODO: Enforce ordering, currently relayers use ORDERED channels
 
-	if counterparty.PortId != commontypes.PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.PortId)
+	if counterparty.GetPortID() != commontypes.PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", commontypes.PortID, counterparty.GetPortID())
 	}
 
 	if version != commontypes.Version {

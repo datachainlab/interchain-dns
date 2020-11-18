@@ -3,8 +3,9 @@ package types
 import (
 	"testing"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
 func TestPacketSerialization(t *testing.T) {

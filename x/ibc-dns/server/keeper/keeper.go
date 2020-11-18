@@ -7,13 +7,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
-	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
-	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
-	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	host "github.com/cosmos/cosmos-sdk/x/ibc/core/24-host"
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 )
 
 // Keeper defines ibc-dns keeper
@@ -209,17 +210,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "ibc/dns/server")
 }
 
-// PacketExecuted defines a wrapper function for the channel Keeper's function
-// in order to expose it to the cross handler.
-// Keeper retreives channel capability and passes it into channel keeper for authentication
-func (k Keeper) PacketExecuted(ctx sdk.Context, packet channelexported.PacketI, acknowledgement []byte) error {
-	chanCap, ok := k.scopedKeeper.GetCapability(ctx, host.ChannelCapabilityPath(packet.GetDestPort(), packet.GetDestChannel()))
-	if !ok {
-		return sdkerrors.Wrap(channeltypes.ErrChannelCapabilityNotFound, "channel capability could not be retrieved for packet")
-	}
-	return k.channelKeeper.PacketExecuted(ctx, chanCap, packet, acknowledgement)
-}
-
 func (k Keeper) registerDomain(ctx sdk.Context, domain string, channel types.LocalChannel, metadata []byte) error {
 	store := ctx.KVStore(k.storeKey)
 	if store.Has(servertypes.KeyForwardDomain(domain)) {
@@ -292,7 +282,7 @@ func (k Keeper) createPacket(
 	sourceChannel,
 	destinationPort,
 	destinationChannel string,
-	timeoutHeight uint64,
+	timeoutHeight ibcclienttypes.Height,
 	timeoutTimestamp uint64,
 ) (*channeltypes.Packet, error) {
 	// get the next sequence

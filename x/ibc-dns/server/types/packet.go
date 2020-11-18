@@ -2,7 +2,9 @@ package types
 
 import (
 	"errors"
-	math "math"
+	"math"
+
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
@@ -39,8 +41,8 @@ func (p RegisterDomainPacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p RegisterDomainPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p RegisterDomainPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p RegisterDomainPacketData) GetTimeoutTimestamp() uint64 {
@@ -100,8 +102,8 @@ func (p DomainAssociationCreatePacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationCreatePacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationCreatePacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationCreatePacketData) GetTimeoutTimestamp() uint64 {
@@ -165,8 +167,8 @@ func (p DomainAssociationResultPacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationResultPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutTimestamp() uint64 {

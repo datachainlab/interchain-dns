@@ -6,6 +6,12 @@ option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns
 import "gogoproto/gogo.proto";
 import "ibc/dns/common/types.proto";
 
+// Msg defines the ibc/transfer Msg service.
+service Msg {
+    rpc RegisterDomain(MsgRegisterDomain) returns (MsgRegisterDomainResponse);
+    rpc DomainAssociationCreate(MsgDomainAssociationCreate) returns (MsgDomainAssociationCreateResponse);
+}
+
 message MsgRegisterDomain {
     option (gogoproto.goproto_getters) = false;
     // the port on which the packet will be sent
@@ -18,16 +24,14 @@ message MsgRegisterDomain {
     ];
     string domain = 3;
     bytes metadata = 4;
-    bytes sender = 5 [
-        (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-    ];
+    bytes sender = 5;
 }
+
+message MsgRegisterDomainResponse { }
 
 message MsgDomainAssociationCreate {
     option (gogoproto.goproto_getters) = false;
-    bytes sender = 1 [
-        (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
-    ];
+    bytes sender = 1;
     ibc.dns.common.LocalDNSID dns_id = 2 [
         (gogoproto.nullable) = false
     ];
@@ -38,3 +42,5 @@ message MsgDomainAssociationCreate {
         (gogoproto.nullable) = false
     ];
 }
+
+message MsgDomainAssociationCreateResponse { }
