@@ -9,7 +9,7 @@ import (
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	dnsservertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
-	ibctesting "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/testing"
+	ibctesting "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc/testing"
 )
 
 func TestDNSKeeperTestSuite(t *testing.T) {
