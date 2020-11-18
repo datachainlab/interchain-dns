@@ -2,10 +2,10 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 )
 
 func SendPacket(k Keeper, ctx sdk.Context,
-	packet *channel.Packet) error {
+	packet *channeltypes.Packet) error {
 	return k.sendPacket(ctx, packet)
 }

@@ -1,26 +1,55 @@
 package types
 
 import (
+	"sync"
+
 	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
-// ModuleCdc is the codec for the module
-var ModuleCdc = codec.New()
+// RegisterInterfaces register the ibc transfer module interfaces to protobuf
+// Any.
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	registry.RegisterInterface(
+		"ibc.dns.server.v1.PacketData",
+		(*types.PacketDataI)(nil),
+		&RegisterDomainPacketData{},
+		&DomainAssociationCreatePacketData{},
+		&DomainAssociationResultPacketData{},
+	)
 
-func init() {
-	types.RegisterCodec(ModuleCdc)
-	RegisterCodec(ModuleCdc)
+	registry.RegisterInterface(
+		"ibc.dns.server.v1.PacketAcknowledgement",
+		(*types.PacketAcknowledgementI)(nil),
+		&RegisterDomainPacketAcknowledgement{},
+		&DomainAssociationCreatePacketAcknowledgement{},
+		&DomainAssociationResultPacketAcknowledgement{},
+	)
 }
 
-// RegisterCodec registers concrete types on the Amino codec
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(RegisterDomainPacketData{}, "ibc/dns/server/RegisterDomainPacketData", nil)
-	cdc.RegisterConcrete(RegisterDomainPacketAcknowledgement{}, "ibc/dns/server/RegisterDomainPacketAcknowledgement", nil)
+var (
+	// ModuleCdc references the global x/ibc-transfer module codec. Note, the codec
+	// should ONLY be used in certain instances of tests and for JSON encoding.
+	//
+	// The actual codec used for serialization should be provided to x/ibc-transfer and
+	// defined at the application level.
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+	PacketCdc = func() func() *codec.ProtoCodec {
+		var once sync.Once
+		var cdc *codec.ProtoCodec
+		return func() *codec.ProtoCodec {
+			once.Do(func() {
+				cdc = setupCodec()
+			})
+			return cdc
+		}
+	}()
+)
 
-	cdc.RegisterConcrete(DomainAssociationCreatePacketData{}, "ibc/dns/server/DomainAssociationCreatePacketData", nil)
-	cdc.RegisterConcrete(DomainAssociationCreatePacketAcknowledgement{}, "ibc/dns/server/DomainAssociationCreatePacketAcknowledgement", nil)
-
-	cdc.RegisterConcrete(DomainAssociationResultPacketData{}, "ibc/dns/server/DomainAssociationResultPacketData", nil)
-	cdc.RegisterConcrete(DomainAssociationResultPacketAcknowledgement{}, "ibc/dns/server/DomainAssociationResultPacketAcknowledgement", nil)
+func setupCodec() *codec.ProtoCodec {
+	r := codectypes.NewInterfaceRegistry()
+	cdc := codec.NewProtoCodec(r)
+	RegisterInterfaces(r)
+	return cdc
 }

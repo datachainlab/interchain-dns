@@ -1,14 +1,18 @@
 package types
 
-type PacketData interface {
+import (
+	"github.com/golang/protobuf/proto"
+)
+
+type PacketDataI interface {
+	proto.Message
 	ValidateBasic() error
 	GetBytes() []byte
-	GetTimeoutHeight() uint64
-	GetTimeoutTimestamp() uint64
 	Type() string
 }
 
-type PacketAcknowledgement interface {
+type PacketAcknowledgementI interface {
+	proto.Message
 	ValidateBasic() error
 	GetBytes() []byte
 	Type() string

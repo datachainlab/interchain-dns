@@ -1,7 +1,6 @@
 .PHONY: build
 build:
-	go build -mod readonly -o build/simappd ./example/cmd/simappd
-	go build -mod readonly -o build/simappcli ./example/cmd/simappcli
+	go build -mod readonly -o build/simd ./simapp/simd
 
 .PHONY: protoc
 protoc:
@@ -10,3 +9,4 @@ protoc:
 .PHONY: test
 test:
 	go test -v ./x/...
+	go test ./simapp/...

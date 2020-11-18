@@ -2,9 +2,10 @@ package types
 
 import (
 	"errors"
-	math "math"
+	"math"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
+
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 )
 
@@ -19,7 +20,7 @@ const (
 
 // Define RegisterDomainPacketData
 
-var _ types.PacketData = (*RegisterDomainPacketData)(nil)
+var _ types.PacketDataI = (*RegisterDomainPacketData)(nil)
 
 func NewRegisterDomainPacketData(name string, metadata []byte) RegisterDomainPacketData {
 	return RegisterDomainPacketData{DomainName: name, Metadata: metadata}
@@ -33,11 +34,15 @@ func (p RegisterDomainPacketData) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
-func (p RegisterDomainPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p RegisterDomainPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p RegisterDomainPacketData) GetTimeoutTimestamp() uint64 {
@@ -55,7 +60,7 @@ const (
 	STATUS_FAILED
 )
 
-var _ types.PacketAcknowledgement = (*RegisterDomainPacketAcknowledgement)(nil)
+var _ types.PacketAcknowledgementI = (*RegisterDomainPacketAcknowledgement)(nil)
 
 func NewRegisterDomainPacketAcknowledgement(status uint32, name string) RegisterDomainPacketAcknowledgement {
 	return RegisterDomainPacketAcknowledgement{Status: status, DomainName: name}
@@ -66,7 +71,11 @@ func (p RegisterDomainPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p RegisterDomainPacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p RegisterDomainPacketAcknowledgement) Type() string {
@@ -75,7 +84,7 @@ func (p RegisterDomainPacketAcknowledgement) Type() string {
 
 // Define DomainAssociationCreatePacketData
 
-var _ types.PacketData = (*DomainAssociationCreatePacketData)(nil)
+var _ types.PacketDataI = (*DomainAssociationCreatePacketData)(nil)
 
 func NewDomainAssociationCreatePacketData(srcClientDomain, dstClientDomain types.ClientDomain) DomainAssociationCreatePacketData {
 	return DomainAssociationCreatePacketData{SrcClient: srcClientDomain, DstClient: dstClientDomain}
@@ -86,11 +95,15 @@ func (p DomainAssociationCreatePacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
-func (p DomainAssociationCreatePacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationCreatePacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationCreatePacketData) GetTimeoutTimestamp() uint64 {
@@ -103,7 +116,7 @@ func (p DomainAssociationCreatePacketData) Type() string {
 
 // Define DomainAssociationCreatePacketAcknowledgement
 
-var _ types.PacketAcknowledgement = (*DomainAssociationCreatePacketAcknowledgement)(nil)
+var _ types.PacketAcknowledgementI = (*DomainAssociationCreatePacketAcknowledgement)(nil)
 
 func NewDomainAssociationCreatePacketAcknowledgement(status uint32, msg string) DomainAssociationCreatePacketAcknowledgement {
 	return DomainAssociationCreatePacketAcknowledgement{Status: status, Msg: msg}
@@ -114,7 +127,11 @@ func (p DomainAssociationCreatePacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p DomainAssociationCreatePacketAcknowledgement) Type() string {
@@ -123,7 +140,7 @@ func (p DomainAssociationCreatePacketAcknowledgement) Type() string {
 
 // Define DomainAssociationResultPacketData
 
-var _ types.PacketData = (*DomainAssociationResultPacketData)(nil)
+var _ types.PacketDataI = (*DomainAssociationResultPacketData)(nil)
 
 func NewDomainAssociationResultPacketData(
 	status uint32,
@@ -143,11 +160,15 @@ func (p DomainAssociationResultPacketData) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketData) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
-func (p DomainAssociationResultPacketData) GetTimeoutHeight() uint64 {
-	return math.MaxUint64
+func (p DomainAssociationResultPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
 func (p DomainAssociationResultPacketData) GetTimeoutTimestamp() uint64 {
@@ -160,7 +181,7 @@ func (p DomainAssociationResultPacketData) Type() string {
 
 // Define DomainAssociationResultPacketAcknowledgement
 
-var _ types.PacketAcknowledgement = (*DomainAssociationResultPacketAcknowledgement)(nil)
+var _ types.PacketAcknowledgementI = (*DomainAssociationResultPacketAcknowledgement)(nil)
 
 func NewDomainAssociationResultPacketAcknowledgement() DomainAssociationResultPacketAcknowledgement {
 	return DomainAssociationResultPacketAcknowledgement{}
@@ -171,7 +192,11 @@ func (p DomainAssociationResultPacketAcknowledgement) ValidateBasic() error {
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) GetBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(p))
+	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 func (p DomainAssociationResultPacketAcknowledgement) Type() string {

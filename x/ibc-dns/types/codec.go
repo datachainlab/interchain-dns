@@ -2,20 +2,24 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	clienttypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
+	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
 	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
 )
 
-// ModuleCdc is the codec for the module
-var ModuleCdc = codec.New()
-
-func init() {
-	RegisterCodec(ModuleCdc)
+// RegisterInterfaces registers x/ibc interfaces into protobuf Any.
+func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
+	commontypes.RegisterInterfaces(registry)
+	clienttypes.RegisterInterfaces(registry)
+	servertypes.RegisterInterfaces(registry)
 }
 
-func RegisterCodec(cdc *codec.Codec) {
-	commontypes.RegisterCodec(cdc)
-	clienttypes.RegisterCodec(cdc)
-	servertypes.RegisterCodec(cdc)
-}
+var (
+	// ModuleCdc references the global x/ibc-transfer module codec. Note, the codec
+	// should ONLY be used in certain instances of tests and for JSON encoding.
+	//
+	// The actual codec used for serialization should be provided to x/ibc-transfer and
+	// defined at the application level.
+	ModuleCdc = codec.NewProtoCodec(codectypes.NewInterfaceRegistry())
+)
