@@ -34,8 +34,8 @@ func (conn *TestConnection) AddTestChannel(portID string) TestChannel {
 func (conn *TestConnection) NextTestChannel(portID string) TestChannel {
 	channelID := fmt.Sprintf("%s-%s%d", conn.ID, ChannelIDPrefix, len(conn.Channels))
 	return TestChannel{
-		Port:                 portID,
-		Channel:              channelID,
+		PortID:               portID,
+		ID:                   channelID,
 		ClientID:             conn.ClientID,
 		CounterpartyClientID: conn.CounterpartyClientID,
 		Version:              conn.NextChannelVersion,
@@ -55,10 +55,10 @@ func (conn *TestConnection) FirstOrNextTestChannel(portID string) TestChannel {
 
 // TestChannel is a testing helper struct to keep track of the portID and channelID
 // used in creating and interacting with a channel. The clientID and counterparty
-// client Channel are also tracked to cut down on querying and argument passing.
+// client ID are also tracked to cut down on querying and argument passing.
 type TestChannel struct {
-	Port                 string
-	Channel              string
+	PortID               string
+	ID                   string
 	ClientID             string
 	CounterpartyClientID string
 	Version              string

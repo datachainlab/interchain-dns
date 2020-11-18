@@ -3,6 +3,7 @@ package ibctesting
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	ibctransfertypes "github.com/cosmos/cosmos-sdk/x/ibc/applications/transfer/types"
 	clienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 	connectiontypes "github.com/cosmos/cosmos-sdk/x/ibc/core/03-connection/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
@@ -56,8 +58,8 @@ const (
 	ConnectionIDPrefix = "conn"
 	ChannelIDPrefix    = "chan"
 
-	DNSPort  = commontypes.PortID
-	MockPort = mock.ModuleName
+	TransferPort = ibctransfertypes.ModuleName
+	MockPort     = mock.ModuleName
 
 	// used for testing UpdateClientProposal
 	Title       = "title"
@@ -113,7 +115,7 @@ type TestChain struct {
 	SenderAccount authtypes.AccountI
 
 	// IBC specific helpers
-	//ClientIDs   []string          // ClientID's used on this chain
+	ClientIDs   []string          // ClientID's used on this chain
 	Connections []*TestConnection // track connectionID's created for this chain
 }
 
@@ -168,6 +170,7 @@ func NewTestChain(t *testing.T, chainID string) *TestChain {
 		Signers:       signers,
 		senderPrivKey: senderPrivKey,
 		SenderAccount: acc,
+		ClientIDs:     make([]string, 0),
 		Connections:   make([]*TestConnection, 0),
 	}
 
@@ -364,7 +367,7 @@ func (chain *TestChain) GetConnection(testConnection *TestConnection) connection
 // GetChannel retrieves an IBC Channel for the provided TestChannel. The channel
 // is expected to exist otherwise testing will fail.
 func (chain *TestChain) GetChannel(testChannel TestChannel) channeltypes.Channel {
-	channel, found := chain.App.IBCKeeper.ChannelKeeper.GetChannel(chain.GetContext(), testChannel.Port, testChannel.Channel)
+	channel, found := chain.App.IBCKeeper.ChannelKeeper.GetChannel(chain.GetContext(), testChannel.PortID, testChannel.ID)
 	require.True(chain.t, found)
 
 	return channel
@@ -384,13 +387,13 @@ func (chain *TestChain) GetPrefix() commitmenttypes.MerklePrefix {
 	return commitmenttypes.NewMerklePrefix(chain.App.IBCKeeper.ConnectionKeeper.GetCommitmentPrefix().Bytes())
 }
 
-//// NewClientID appends a new clientID string in the format:
-//// ClientFor<counterparty-chain-id><index>
-//func (chain *TestChain) NewClientID(counterpartyChainID string) string {
-//	clientID := "client" + strconv.Itoa(len(chain.ClientIDs)) + "For" + counterpartyChainID
-//	chain.ClientIDs = append(chain.ClientIDs, clientID)
-//	return clientID
-//}
+// NewClientID appends a new clientID string in the format:
+// ClientFor<counterparty-chain-id><index>
+func (chain *TestChain) NewClientID(counterpartyChainID string) string {
+	clientID := "client" + strconv.Itoa(len(chain.ClientIDs)) + "For" + counterpartyChainID
+	chain.ClientIDs = append(chain.ClientIDs, clientID)
+	return clientID
+}
 
 // AddTestConnection appends a new TestConnection which contains references
 // to the connection id, client id and counterparty client id.
@@ -702,7 +705,7 @@ func (chain *TestChain) ConnectionOpenConfirm(
 
 // CreatePortCapability binds and claims a capability for the given portID if it does not
 // already exist. This function will fail testing on any resulting error.
-// NOTE: only creation of a capbility for a dns or mock port is supported
+// NOTE: only creation of a capbility for a transfer or mock port is supported
 // Other applications must bind to the port in InitGenesis or modify this code.
 func (chain *TestChain) CreatePortCapability(portID string) {
 	// check if the portId is already binded, if not bind it
@@ -717,7 +720,11 @@ func (chain *TestChain) CreatePortCapability(portID string) {
 			// claim capability using the mock capability keeper
 			err = chain.App.ScopedIBCMockKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 			require.NoError(chain.t, err)
-		case DNSPort:
+		case TransferPort:
+			// claim capability using the transfer capability keeper
+			err = chain.App.ScopedTransferKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
+			require.NoError(chain.t, err)
+		case commontypes.PortID:
 			// claim capability using the dns capability keeper
 			err = chain.App.ScopedDNSKeeper.ClaimCapability(chain.GetContext(), cap, host.PortPath(portID))
 			require.NoError(chain.t, err)
@@ -774,9 +781,9 @@ func (chain *TestChain) ChanOpenInit(
 	connectionID string,
 ) error {
 	msg := channeltypes.NewMsgChannelOpenInit(
-		ch.Port, ch.Channel,
+		ch.PortID, ch.ID,
 		ch.Version, order, []string{connectionID},
-		counterparty.Port, counterparty.Channel,
+		counterparty.PortID, counterparty.ID,
 		chain.SenderAccount.GetAddress(),
 	)
 	return chain.sendMsgs(msg)
@@ -789,12 +796,12 @@ func (chain *TestChain) ChanOpenTry(
 	order channeltypes.Order,
 	connectionID string,
 ) error {
-	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.Port, counterpartyCh.Channel))
+	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.PortID, counterpartyCh.ID))
 
 	msg := channeltypes.NewMsgChannelOpenTry(
-		ch.Port, ch.Channel, ch.Channel, // testing doesn't use flexible selection
+		ch.PortID, ch.ID, ch.ID, // testing doesn't use flexible selection
 		ch.Version, order, []string{connectionID},
-		counterpartyCh.Port, counterpartyCh.Channel,
+		counterpartyCh.PortID, counterpartyCh.ID,
 		counterpartyCh.Version,
 		proof, height,
 		chain.SenderAccount.GetAddress(),
@@ -807,11 +814,11 @@ func (chain *TestChain) ChanOpenAck(
 	counterparty *TestChain,
 	ch, counterpartyCh TestChannel,
 ) error {
-	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.Port, counterpartyCh.Channel))
+	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.PortID, counterpartyCh.ID))
 
 	msg := channeltypes.NewMsgChannelOpenAck(
-		ch.Port, ch.Channel,
-		counterpartyCh.Channel, counterpartyCh.Version, // testing doesn't use flexible selection
+		ch.PortID, ch.ID,
+		counterpartyCh.ID, counterpartyCh.Version, // testing doesn't use flexible selection
 		proof, height,
 		chain.SenderAccount.GetAddress(),
 	)
@@ -823,10 +830,10 @@ func (chain *TestChain) ChanOpenConfirm(
 	counterparty *TestChain,
 	ch, counterpartyCh TestChannel,
 ) error {
-	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.Port, counterpartyCh.Channel))
+	proof, height := counterparty.QueryProof(host.KeyChannel(counterpartyCh.PortID, counterpartyCh.ID))
 
 	msg := channeltypes.NewMsgChannelOpenConfirm(
-		ch.Port, ch.Channel,
+		ch.PortID, ch.ID,
 		proof, height,
 		chain.SenderAccount.GetAddress(),
 	)
@@ -841,10 +848,23 @@ func (chain *TestChain) ChanCloseInit(
 	channel TestChannel,
 ) error {
 	msg := channeltypes.NewMsgChannelCloseInit(
-		channel.Port, channel.Channel,
+		channel.PortID, channel.ID,
 		chain.SenderAccount.GetAddress(),
 	)
 	return chain.sendMsgs(msg)
+}
+
+// GetPacketData returns a ibc-transfer marshalled packet to be used for
+// callback testing.
+func (chain *TestChain) GetPacketData(counterparty *TestChain) []byte {
+	packet := ibctransfertypes.FungibleTokenPacketData{
+		Denom:    TestCoin.Denom,
+		Amount:   TestCoin.Amount.Uint64(),
+		Sender:   chain.SenderAccount.GetAddress().String(),
+		Receiver: counterparty.SenderAccount.GetAddress().String(),
+	}
+
+	return packet.GetBytes()
 }
 
 // SendPacket simulates sending a packet through the channel keeper. No message needs to be
