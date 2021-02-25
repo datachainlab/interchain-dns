@@ -1,12 +1,12 @@
 package types
 
-import "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+import "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 
 const (
-	DomainAssociationStatusInit uint32 = iota + 1
-	DomainAssociationStatusConfirmed
+	DomainMappingStatusInit uint32 = iota + 1
+	DomainMappingStatusConfirmed
 )
 
-func NewDomainAssociation(status uint32, srcClient, dstClient types.ClientDomain) types.DomainAssociation {
-	return types.DomainAssociation{Status: status, SrcClient: srcClient, DstClient: dstClient}
+func NewDomainMapping(status uint32, srcClient, dstClient types.ClientDomain) types.DomainMapping {
+	return types.DomainMapping{Status: status, SrcClient: srcClient, DstClient: dstClient}
 }

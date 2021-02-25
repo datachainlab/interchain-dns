@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ibc.dns.common;
 
-option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types";
+option go_package = "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types";
 
 import "gogoproto/gogo.proto";
 
@@ -26,7 +26,7 @@ message LocalDomain {
     ];
 }
 
-message DomainAssociation {
+message DomainMapping {
     uint32 status = 1;
     ClientDomain src_client = 2 [
         (gogoproto.nullable) = false

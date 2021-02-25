@@ -10,7 +10,7 @@ import (
 // Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgRegisterDomain{})
-	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgDomainAssociationCreate{})
+	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgDomainMappingCreate{})
 }
 
 var (

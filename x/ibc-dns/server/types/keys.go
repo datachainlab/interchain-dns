@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 const (
 	KeyForwardDomainPrefix uint8 = iota
 	KeyReverseDomainPrefix
-	KeyDomainAssociationPrefix
+	KeyDomainMappingPrefix
 )
 
 // KeyPrefixBytes return the key prefix bytes from a URL string format
@@ -38,10 +38,10 @@ func KeyReverseDomain(port, channel string) []byte {
 	)
 }
 
-// KeyDomainAssociation returns the key of DomainAssociation
-func KeyDomainAssociation(srcClientDomain, dstClientDomain types.ClientDomain) []byte {
+// KeyDomainMapping returns the key of DomainMapping
+func KeyDomainMapping(srcClientDomain, dstClientDomain types.ClientDomain) []byte {
 	return append(
-		KeyPrefixBytes(KeyDomainAssociationPrefix),
+		KeyPrefixBytes(KeyDomainMappingPrefix),
 		[]byte(fmt.Sprintf("%v/%v/%v/%v", srcClientDomain.ClientId, srcClientDomain.DomainName, dstClientDomain.ClientId, dstClientDomain.DomainName))...,
 	)
 }

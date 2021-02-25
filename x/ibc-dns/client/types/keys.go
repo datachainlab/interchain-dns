@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 const (

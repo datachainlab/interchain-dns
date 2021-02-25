@@ -4,9 +4,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/keeper"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/server/keeper"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 // NewPacketReceiver returns a receiver to handle received packets
@@ -19,8 +19,8 @@ func NewPacketReceiver(keeper keeper.Keeper) commontypes.PacketReceiver {
 		switch data := data.(type) {
 		case *types.RegisterDomainPacketData:
 			return handlePacketRegisterChannelDomain(ctx, keeper, packet, data)
-		case *types.DomainAssociationCreatePacketData:
-			return handleDomainAssociationCreatePacketData(ctx, keeper, packet, data)
+		case *types.DomainMappingCreatePacketData:
+			return handleDomainMappingCreatePacketData(ctx, keeper, packet, data)
 		default:
 			return nil, nil, commontypes.ErrUnknownRequest
 		}
@@ -39,10 +39,10 @@ func handlePacketRegisterChannelDomain(ctx sdk.Context, keeper keeper.Keeper, pa
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack.GetBytes(), nil
 }
 
-func handleDomainAssociationCreatePacketData(ctx sdk.Context, keeper keeper.Keeper, packet channeltypes.Packet, data *types.DomainAssociationCreatePacketData) (*sdk.Result, []byte, error) {
-	ack, completed := keeper.ReceiveDomainAssociationCreatePacketData(ctx, packet, data)
+func handleDomainMappingCreatePacketData(ctx sdk.Context, keeper keeper.Keeper, packet channeltypes.Packet, data *types.DomainMappingCreatePacketData) (*sdk.Result, []byte, error) {
+	ack, completed := keeper.ReceiveDomainMappingCreatePacketData(ctx, packet, data)
 	if completed {
-		err := keeper.SendDomainAssociationResultPacketData(ctx, ack.Status, data.SrcClient, data.DstClient)
+		err := keeper.SendDomainMappingResultPacketData(ctx, ack.Status, data.SrcClient, data.DstClient)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -59,14 +59,14 @@ func NewPacketAcknowledgementReceiver(keeper keeper.Keeper) commontypes.PacketAc
 			return nil, err
 		}
 		switch ackData := ackData.(type) {
-		case *types.DomainAssociationResultPacketAcknowledgement:
-			return handleDomainAssociationResultPacketAcknowledgement(ctx, keeper, ackData)
+		case *types.DomainMappingResultPacketAcknowledgement:
+			return handleDomainMappingResultPacketAcknowledgement(ctx, keeper, ackData)
 		default:
 			return nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
 
-func handleDomainAssociationResultPacketAcknowledgement(ctx sdk.Context, k keeper.Keeper, ackData *types.DomainAssociationResultPacketAcknowledgement) (*sdk.Result, error) {
+func handleDomainMappingResultPacketAcknowledgement(ctx sdk.Context, k keeper.Keeper, ackData *types.DomainMappingResultPacketAcknowledgement) (*sdk.Result, error) {
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

@@ -5,7 +5,7 @@ package types
 
 import (
 	fmt "fmt"
-	types "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	types "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -100,23 +100,23 @@ func (m *RegisterDomainPacketAcknowledgement) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RegisterDomainPacketAcknowledgement proto.InternalMessageInfo
 
-type DomainAssociationCreatePacketData struct {
+type DomainMappingCreatePacketData struct {
 	SrcClient types.ClientDomain `protobuf:"bytes,1,opt,name=src_client,json=srcClient,proto3" json:"src_client"`
 	DstClient types.ClientDomain `protobuf:"bytes,2,opt,name=dst_client,json=dstClient,proto3" json:"dst_client"`
 }
 
-func (m *DomainAssociationCreatePacketData) Reset()         { *m = DomainAssociationCreatePacketData{} }
-func (m *DomainAssociationCreatePacketData) String() string { return proto.CompactTextString(m) }
-func (*DomainAssociationCreatePacketData) ProtoMessage()    {}
-func (*DomainAssociationCreatePacketData) Descriptor() ([]byte, []int) {
+func (m *DomainMappingCreatePacketData) Reset()         { *m = DomainMappingCreatePacketData{} }
+func (m *DomainMappingCreatePacketData) String() string { return proto.CompactTextString(m) }
+func (*DomainMappingCreatePacketData) ProtoMessage()    {}
+func (*DomainMappingCreatePacketData) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ed97b1dc64ec9181, []int{2}
 }
-func (m *DomainAssociationCreatePacketData) XXX_Unmarshal(b []byte) error {
+func (m *DomainMappingCreatePacketData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DomainAssociationCreatePacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DomainMappingCreatePacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DomainAssociationCreatePacketData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DomainMappingCreatePacketData.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -126,39 +126,37 @@ func (m *DomainAssociationCreatePacketData) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (m *DomainAssociationCreatePacketData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DomainAssociationCreatePacketData.Merge(m, src)
+func (m *DomainMappingCreatePacketData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DomainMappingCreatePacketData.Merge(m, src)
 }
-func (m *DomainAssociationCreatePacketData) XXX_Size() int {
+func (m *DomainMappingCreatePacketData) XXX_Size() int {
 	return m.Size()
 }
-func (m *DomainAssociationCreatePacketData) XXX_DiscardUnknown() {
-	xxx_messageInfo_DomainAssociationCreatePacketData.DiscardUnknown(m)
+func (m *DomainMappingCreatePacketData) XXX_DiscardUnknown() {
+	xxx_messageInfo_DomainMappingCreatePacketData.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DomainAssociationCreatePacketData proto.InternalMessageInfo
+var xxx_messageInfo_DomainMappingCreatePacketData proto.InternalMessageInfo
 
-type DomainAssociationCreatePacketAcknowledgement struct {
+type DomainMappingCreatePacketAcknowledgement struct {
 	Status uint32 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg    string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 }
 
-func (m *DomainAssociationCreatePacketAcknowledgement) Reset() {
-	*m = DomainAssociationCreatePacketAcknowledgement{}
+func (m *DomainMappingCreatePacketAcknowledgement) Reset() {
+	*m = DomainMappingCreatePacketAcknowledgement{}
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) String() string {
-	return proto.CompactTextString(m)
-}
-func (*DomainAssociationCreatePacketAcknowledgement) ProtoMessage() {}
-func (*DomainAssociationCreatePacketAcknowledgement) Descriptor() ([]byte, []int) {
+func (m *DomainMappingCreatePacketAcknowledgement) String() string { return proto.CompactTextString(m) }
+func (*DomainMappingCreatePacketAcknowledgement) ProtoMessage()    {}
+func (*DomainMappingCreatePacketAcknowledgement) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ed97b1dc64ec9181, []int{3}
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) XXX_Unmarshal(b []byte) error {
+func (m *DomainMappingCreatePacketAcknowledgement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DomainMappingCreatePacketAcknowledgement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DomainAssociationCreatePacketAcknowledgement.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DomainMappingCreatePacketAcknowledgement.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -168,36 +166,36 @@ func (m *DomainAssociationCreatePacketAcknowledgement) XXX_Marshal(b []byte, det
 		return b[:n], nil
 	}
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DomainAssociationCreatePacketAcknowledgement.Merge(m, src)
+func (m *DomainMappingCreatePacketAcknowledgement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DomainMappingCreatePacketAcknowledgement.Merge(m, src)
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) XXX_Size() int {
+func (m *DomainMappingCreatePacketAcknowledgement) XXX_Size() int {
 	return m.Size()
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) XXX_DiscardUnknown() {
-	xxx_messageInfo_DomainAssociationCreatePacketAcknowledgement.DiscardUnknown(m)
+func (m *DomainMappingCreatePacketAcknowledgement) XXX_DiscardUnknown() {
+	xxx_messageInfo_DomainMappingCreatePacketAcknowledgement.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DomainAssociationCreatePacketAcknowledgement proto.InternalMessageInfo
+var xxx_messageInfo_DomainMappingCreatePacketAcknowledgement proto.InternalMessageInfo
 
-type DomainAssociationResultPacketData struct {
+type DomainMappingResultPacketData struct {
 	Status             uint32            `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	CounterpartyDomain types.LocalDomain `protobuf:"bytes,2,opt,name=counterparty_domain,json=counterpartyDomain,proto3" json:"counterparty_domain"`
 	ClientId           string            `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
 }
 
-func (m *DomainAssociationResultPacketData) Reset()         { *m = DomainAssociationResultPacketData{} }
-func (m *DomainAssociationResultPacketData) String() string { return proto.CompactTextString(m) }
-func (*DomainAssociationResultPacketData) ProtoMessage()    {}
-func (*DomainAssociationResultPacketData) Descriptor() ([]byte, []int) {
+func (m *DomainMappingResultPacketData) Reset()         { *m = DomainMappingResultPacketData{} }
+func (m *DomainMappingResultPacketData) String() string { return proto.CompactTextString(m) }
+func (*DomainMappingResultPacketData) ProtoMessage()    {}
+func (*DomainMappingResultPacketData) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ed97b1dc64ec9181, []int{4}
 }
-func (m *DomainAssociationResultPacketData) XXX_Unmarshal(b []byte) error {
+func (m *DomainMappingResultPacketData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DomainAssociationResultPacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DomainMappingResultPacketData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DomainAssociationResultPacketData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DomainMappingResultPacketData.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -207,37 +205,35 @@ func (m *DomainAssociationResultPacketData) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (m *DomainAssociationResultPacketData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DomainAssociationResultPacketData.Merge(m, src)
+func (m *DomainMappingResultPacketData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DomainMappingResultPacketData.Merge(m, src)
 }
-func (m *DomainAssociationResultPacketData) XXX_Size() int {
+func (m *DomainMappingResultPacketData) XXX_Size() int {
 	return m.Size()
 }
-func (m *DomainAssociationResultPacketData) XXX_DiscardUnknown() {
-	xxx_messageInfo_DomainAssociationResultPacketData.DiscardUnknown(m)
+func (m *DomainMappingResultPacketData) XXX_DiscardUnknown() {
+	xxx_messageInfo_DomainMappingResultPacketData.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DomainAssociationResultPacketData proto.InternalMessageInfo
+var xxx_messageInfo_DomainMappingResultPacketData proto.InternalMessageInfo
 
-type DomainAssociationResultPacketAcknowledgement struct {
+type DomainMappingResultPacketAcknowledgement struct {
 }
 
-func (m *DomainAssociationResultPacketAcknowledgement) Reset() {
-	*m = DomainAssociationResultPacketAcknowledgement{}
+func (m *DomainMappingResultPacketAcknowledgement) Reset() {
+	*m = DomainMappingResultPacketAcknowledgement{}
 }
-func (m *DomainAssociationResultPacketAcknowledgement) String() string {
-	return proto.CompactTextString(m)
-}
-func (*DomainAssociationResultPacketAcknowledgement) ProtoMessage() {}
-func (*DomainAssociationResultPacketAcknowledgement) Descriptor() ([]byte, []int) {
+func (m *DomainMappingResultPacketAcknowledgement) String() string { return proto.CompactTextString(m) }
+func (*DomainMappingResultPacketAcknowledgement) ProtoMessage()    {}
+func (*DomainMappingResultPacketAcknowledgement) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ed97b1dc64ec9181, []int{5}
 }
-func (m *DomainAssociationResultPacketAcknowledgement) XXX_Unmarshal(b []byte) error {
+func (m *DomainMappingResultPacketAcknowledgement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DomainAssociationResultPacketAcknowledgement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DomainMappingResultPacketAcknowledgement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DomainAssociationResultPacketAcknowledgement.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DomainMappingResultPacketAcknowledgement.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -247,17 +243,17 @@ func (m *DomainAssociationResultPacketAcknowledgement) XXX_Marshal(b []byte, det
 		return b[:n], nil
 	}
 }
-func (m *DomainAssociationResultPacketAcknowledgement) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DomainAssociationResultPacketAcknowledgement.Merge(m, src)
+func (m *DomainMappingResultPacketAcknowledgement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DomainMappingResultPacketAcknowledgement.Merge(m, src)
 }
-func (m *DomainAssociationResultPacketAcknowledgement) XXX_Size() int {
+func (m *DomainMappingResultPacketAcknowledgement) XXX_Size() int {
 	return m.Size()
 }
-func (m *DomainAssociationResultPacketAcknowledgement) XXX_DiscardUnknown() {
-	xxx_messageInfo_DomainAssociationResultPacketAcknowledgement.DiscardUnknown(m)
+func (m *DomainMappingResultPacketAcknowledgement) XXX_DiscardUnknown() {
+	xxx_messageInfo_DomainMappingResultPacketAcknowledgement.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DomainAssociationResultPacketAcknowledgement proto.InternalMessageInfo
+var xxx_messageInfo_DomainMappingResultPacketAcknowledgement proto.InternalMessageInfo
 
 type DomainChannelInfo struct {
 	Channel  types.LocalChannel `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel"`
@@ -300,48 +296,48 @@ var xxx_messageInfo_DomainChannelInfo proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*RegisterDomainPacketData)(nil), "ibc.dns.server.RegisterDomainPacketData")
 	proto.RegisterType((*RegisterDomainPacketAcknowledgement)(nil), "ibc.dns.server.RegisterDomainPacketAcknowledgement")
-	proto.RegisterType((*DomainAssociationCreatePacketData)(nil), "ibc.dns.server.DomainAssociationCreatePacketData")
-	proto.RegisterType((*DomainAssociationCreatePacketAcknowledgement)(nil), "ibc.dns.server.DomainAssociationCreatePacketAcknowledgement")
-	proto.RegisterType((*DomainAssociationResultPacketData)(nil), "ibc.dns.server.DomainAssociationResultPacketData")
-	proto.RegisterType((*DomainAssociationResultPacketAcknowledgement)(nil), "ibc.dns.server.DomainAssociationResultPacketAcknowledgement")
+	proto.RegisterType((*DomainMappingCreatePacketData)(nil), "ibc.dns.server.DomainMappingCreatePacketData")
+	proto.RegisterType((*DomainMappingCreatePacketAcknowledgement)(nil), "ibc.dns.server.DomainMappingCreatePacketAcknowledgement")
+	proto.RegisterType((*DomainMappingResultPacketData)(nil), "ibc.dns.server.DomainMappingResultPacketData")
+	proto.RegisterType((*DomainMappingResultPacketAcknowledgement)(nil), "ibc.dns.server.DomainMappingResultPacketAcknowledgement")
 	proto.RegisterType((*DomainChannelInfo)(nil), "ibc.dns.server.DomainChannelInfo")
 }
 
 func init() { proto.RegisterFile("ibc/dns/server/types.proto", fileDescriptor_ed97b1dc64ec9181) }
 
 var fileDescriptor_ed97b1dc64ec9181 = []byte{
-	// 493 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xc1, 0x6e, 0xd3, 0x4e,
-	0x10, 0xc6, 0xed, 0xb4, 0xea, 0xbf, 0xd9, 0xfe, 0x41, 0x60, 0x10, 0x8a, 0x52, 0xe4, 0x94, 0x72,
-	0xe9, 0x81, 0xd8, 0x12, 0x70, 0x42, 0x5c, 0xd2, 0xf4, 0x40, 0x25, 0x84, 0x90, 0x8f, 0x48, 0x10,
-	0xad, 0x77, 0x07, 0x67, 0x15, 0x7b, 0x37, 0xf2, 0x4c, 0x80, 0xbe, 0x01, 0x47, 0x1e, 0x81, 0x37,
-	0x40, 0xe2, 0x29, 0x7a, 0xec, 0x91, 0x13, 0x42, 0xc9, 0x8b, 0x20, 0x7b, 0x37, 0x95, 0xb1, 0x52,
-	0xe8, 0x6d, 0x77, 0x26, 0xdf, 0x37, 0xdf, 0xfc, 0xe2, 0x65, 0x7d, 0x95, 0x8a, 0x58, 0x6a, 0x8c,
-	0x11, 0xca, 0x0f, 0x50, 0xc6, 0x74, 0x36, 0x07, 0x8c, 0xe6, 0xa5, 0x21, 0x13, 0xdc, 0x54, 0xa9,
-	0x88, 0xa4, 0xc6, 0xc8, 0xf6, 0xfa, 0x77, 0x33, 0x93, 0x99, 0xba, 0x15, 0x57, 0x27, 0xfb, 0xab,
-	0xfe, 0xa5, 0x83, 0x30, 0x45, 0x61, 0x74, 0xd3, 0xe1, 0xf0, 0x2d, 0xeb, 0x25, 0x90, 0x29, 0x24,
-	0x28, 0x4f, 0x4c, 0xc1, 0x95, 0x7e, 0xcd, 0xc5, 0x0c, 0xe8, 0x84, 0x13, 0x0f, 0x06, 0x6c, 0x4f,
-	0xd6, 0xb5, 0x89, 0xe6, 0x05, 0xf4, 0xfc, 0x03, 0xff, 0xa8, 0x9b, 0x30, 0x5b, 0x7a, 0xc5, 0x0b,
-	0x08, 0xfa, 0x6c, 0xb7, 0x00, 0xe2, 0x92, 0x13, 0xef, 0x75, 0x0e, 0xfc, 0xa3, 0xff, 0x93, 0xcb,
-	0xfb, 0xb3, 0xed, 0xcf, 0x5f, 0x07, 0xde, 0xa1, 0x64, 0x0f, 0x37, 0xd9, 0x8f, 0xc4, 0x4c, 0x9b,
-	0x8f, 0x39, 0xc8, 0x0c, 0x0a, 0xd0, 0x14, 0xdc, 0x63, 0x3b, 0x48, 0x9c, 0x16, 0x58, 0x0f, 0xb9,
-	0x91, 0xb8, 0x5b, 0x3b, 0x41, 0xa7, 0x9d, 0xc0, 0x4d, 0xf9, 0xe6, 0xb3, 0x07, 0xd6, 0x7e, 0x84,
-	0x68, 0x84, 0xe2, 0xa4, 0x8c, 0x1e, 0x97, 0xc0, 0x09, 0x1a, 0xeb, 0x8c, 0x18, 0xc3, 0x52, 0x4c,
-	0x44, 0xae, 0x40, 0x53, 0x3d, 0x68, 0xef, 0xf1, 0xfd, 0x68, 0x4d, 0xd0, 0xb2, 0x89, 0xc6, 0x75,
-	0xd7, 0x9a, 0x1d, 0x6f, 0x9f, 0xff, 0x1c, 0x78, 0x49, 0x17, 0x4b, 0x61, 0xcb, 0x95, 0x85, 0x44,
-	0x5a, 0x5b, 0x74, 0xae, 0x6f, 0x21, 0x91, 0x6c, 0xd9, 0x25, 0x7e, 0xc7, 0x1e, 0xfd, 0x35, 0xf0,
-	0x75, 0x01, 0xdd, 0x62, 0x5b, 0x05, 0x66, 0x0e, 0x4c, 0x75, 0x74, 0xfe, 0xdf, 0x37, 0x11, 0x49,
-	0x00, 0x17, 0x39, 0x35, 0x88, 0x5c, 0xe5, 0x9a, 0xb0, 0x3b, 0xc2, 0x2c, 0x34, 0x41, 0x39, 0xe7,
-	0x25, 0x9d, 0x4d, 0x2c, 0x70, 0xb7, 0xef, 0x7e, 0x7b, 0xdf, 0x97, 0x46, 0xf0, 0xfc, 0x8f, 0x75,
-	0x83, 0xa6, 0xda, 0x76, 0x82, 0x7d, 0xd6, 0xb5, 0xd8, 0x26, 0x4a, 0xf6, 0xb6, 0xea, 0xbc, 0xbb,
-	0xb6, 0x70, 0x2a, 0x5d, 0xe8, 0xa7, 0x1b, 0xa0, 0x34, 0x33, 0xb7, 0xa0, 0x38, 0x15, 0xb2, 0xdb,
-	0x56, 0x35, 0x9e, 0x72, 0xad, 0x21, 0x3f, 0xd5, 0xef, 0x4d, 0xf0, 0x9c, 0xfd, 0x27, 0xec, 0xf5,
-	0xaa, 0x3f, 0xba, 0x4e, 0xed, 0x24, 0x2e, 0xf6, 0x5a, 0xf2, 0xef, 0xef, 0xfa, 0x38, 0x3d, 0x5f,
-	0x86, 0xfe, 0xc5, 0x32, 0xf4, 0x7f, 0x2d, 0x43, 0xff, 0xcb, 0x2a, 0xf4, 0x2e, 0x56, 0xa1, 0xf7,
-	0x63, 0x15, 0x7a, 0x6f, 0x5e, 0x64, 0x8a, 0xa6, 0x8b, 0xb4, 0x1a, 0x13, 0x57, 0x02, 0x31, 0xe5,
-	0x4a, 0xe7, 0x3c, 0x8d, 0x85, 0xc1, 0xc2, 0xe0, 0x10, 0xe5, 0x6c, 0xa8, 0x2a, 0x38, 0x75, 0x63,
-	0x58, 0x3d, 0xcb, 0x4f, 0xb1, 0x4a, 0xc5, 0xb0, 0xfd, 0xc4, 0xd3, 0x9d, 0xfa, 0x85, 0x3e, 0xf9,
-	0x1d, 0x00, 0x00, 0xff, 0xff, 0xe4, 0x10, 0xcd, 0xf1, 0x01, 0x04, 0x00, 0x00,
+	// 481 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0x86, 0xed, 0xb4, 0x2a, 0xcd, 0x16, 0x10, 0x18, 0x84, 0xa2, 0x14, 0x9c, 0xaa, 0x5c, 0x72,
+	0xa9, 0x8d, 0xe0, 0x86, 0xe0, 0xd0, 0xa6, 0x97, 0x4a, 0x80, 0x90, 0x2f, 0x48, 0x95, 0x50, 0xb4,
+	0xde, 0x1d, 0x9c, 0x55, 0xed, 0x5d, 0x6b, 0x77, 0x02, 0xf4, 0x0d, 0x38, 0xf2, 0x08, 0xdc, 0x91,
+	0x78, 0x8e, 0x1e, 0x7b, 0xe4, 0x84, 0x50, 0xf2, 0x22, 0xc8, 0xbb, 0x9b, 0xca, 0x58, 0x44, 0xf4,
+	0xb6, 0x33, 0x93, 0xf9, 0xe7, 0x9f, 0x2f, 0x1e, 0x32, 0x14, 0x39, 0x4b, 0xb9, 0x34, 0xa9, 0x01,
+	0xfd, 0x11, 0x74, 0x8a, 0xe7, 0x35, 0x98, 0xa4, 0xd6, 0x0a, 0x55, 0x74, 0x5b, 0xe4, 0x2c, 0xe1,
+	0xd2, 0x24, 0xae, 0x36, 0xbc, 0x5f, 0xa8, 0x42, 0xd9, 0x52, 0xda, 0xbc, 0xdc, 0xaf, 0x86, 0x57,
+	0x0a, 0x4c, 0x55, 0x95, 0x92, 0x6d, 0x85, 0xfd, 0xf7, 0x64, 0x90, 0x41, 0x21, 0x0c, 0x82, 0x3e,
+	0x56, 0x15, 0x15, 0xf2, 0x2d, 0x65, 0x67, 0x80, 0xc7, 0x14, 0x69, 0x34, 0x22, 0x3b, 0xdc, 0xe6,
+	0xa6, 0x92, 0x56, 0x30, 0x08, 0xf7, 0xc2, 0x71, 0x3f, 0x23, 0x2e, 0xf5, 0x86, 0x56, 0x10, 0x0d,
+	0xc9, 0x76, 0x05, 0x48, 0x39, 0x45, 0x3a, 0xe8, 0xed, 0x85, 0xe3, 0x9b, 0xd9, 0x55, 0xfc, 0x7c,
+	0xf3, 0xcb, 0xb7, 0x51, 0xb0, 0xcf, 0xc9, 0xe3, 0x7f, 0xc9, 0x1f, 0xb2, 0x33, 0xa9, 0x3e, 0x95,
+	0xc0, 0x0b, 0xa8, 0x40, 0x62, 0xf4, 0x80, 0x6c, 0x19, 0xa4, 0x38, 0x37, 0x76, 0xc8, 0xad, 0xcc,
+	0x47, 0x5d, 0x07, 0xbd, 0xae, 0x03, 0x3f, 0xe5, 0x7b, 0x48, 0x1e, 0x39, 0xf9, 0xd7, 0xb4, 0xae,
+	0x85, 0x2c, 0x26, 0x1a, 0x28, 0x42, 0x6b, 0x95, 0x43, 0x42, 0x8c, 0x66, 0x53, 0x56, 0x0a, 0x90,
+	0x68, 0x87, 0xec, 0x3c, 0x7d, 0x98, 0xac, 0xe8, 0x39, 0x2e, 0xc9, 0xc4, 0x56, 0x9d, 0xd0, 0xd1,
+	0xe6, 0xc5, 0xaf, 0x51, 0x90, 0xf5, 0x8d, 0x66, 0x2e, 0xdd, 0x48, 0x70, 0x83, 0x2b, 0x89, 0xde,
+	0xf5, 0x25, 0xb8, 0x41, 0x97, 0xf6, 0x6e, 0x4f, 0xc9, 0x78, 0xad, 0xd9, 0xeb, 0x82, 0xb9, 0x43,
+	0x36, 0x2a, 0x53, 0x78, 0x20, 0xcd, 0xd3, 0x6b, 0xff, 0xe8, 0x92, 0xc8, 0xc0, 0xcc, 0x4b, 0x6c,
+	0x91, 0x58, 0xa7, 0x98, 0x91, 0x7b, 0x4c, 0xcd, 0x25, 0x82, 0xae, 0xa9, 0xc6, 0xf3, 0xa9, 0x83,
+	0xec, 0xf7, 0xdc, 0xed, 0xee, 0xf9, 0x4a, 0x31, 0x5a, 0xfe, 0xb5, 0x66, 0xd4, 0xee, 0x76, 0x95,
+	0x68, 0x97, 0xf4, 0x1d, 0xae, 0xa9, 0xe0, 0x83, 0x0d, 0xeb, 0x75, 0xdb, 0x25, 0x4e, 0xb8, 0x37,
+	0xfc, 0xa4, 0x03, 0xa3, 0xed, 0xb7, 0x03, 0xc3, 0x77, 0x18, 0x72, 0xd7, 0x75, 0x4c, 0x66, 0x54,
+	0x4a, 0x28, 0x4f, 0xe4, 0x07, 0x15, 0xbd, 0x20, 0x37, 0x98, 0x0b, 0xd7, 0xfd, 0xb9, 0xd6, 0xb1,
+	0x6f, 0xf1, 0x96, 0x57, 0x2d, 0xff, 0xff, 0x8e, 0x8f, 0xde, 0x5d, 0x2c, 0xe2, 0xf0, 0x72, 0x11,
+	0x87, 0xbf, 0x17, 0x71, 0xf8, 0x75, 0x19, 0x07, 0x97, 0xcb, 0x38, 0xf8, 0xb9, 0x8c, 0x83, 0xd3,
+	0x97, 0x85, 0xc0, 0xd9, 0x3c, 0x6f, 0xc6, 0xa4, 0x4d, 0x03, 0x9b, 0x51, 0x21, 0x4b, 0x9a, 0xa7,
+	0xa2, 0xa1, 0x61, 0xa3, 0x83, 0xe6, 0xf6, 0x3e, 0xa7, 0x22, 0x67, 0x07, 0xdd, 0x3b, 0xce, 0xb7,
+	0xec, 0x19, 0x3e, 0xfb, 0x13, 0x00, 0x00, 0xff, 0xff, 0x3c, 0xf2, 0xff, 0xf8, 0xe6, 0x03, 0x00,
+	0x00,
 }
 
 func (m *RegisterDomainPacketData) Marshal() (dAtA []byte, err error) {
@@ -416,7 +412,7 @@ func (m *RegisterDomainPacketAcknowledgement) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *DomainAssociationCreatePacketData) Marshal() (dAtA []byte, err error) {
+func (m *DomainMappingCreatePacketData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -426,12 +422,12 @@ func (m *DomainAssociationCreatePacketData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DomainAssociationCreatePacketData) MarshalTo(dAtA []byte) (int, error) {
+func (m *DomainMappingCreatePacketData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DomainAssociationCreatePacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DomainMappingCreatePacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -459,7 +455,7 @@ func (m *DomainAssociationCreatePacketData) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
-func (m *DomainAssociationCreatePacketAcknowledgement) Marshal() (dAtA []byte, err error) {
+func (m *DomainMappingCreatePacketAcknowledgement) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -469,12 +465,12 @@ func (m *DomainAssociationCreatePacketAcknowledgement) Marshal() (dAtA []byte, e
 	return dAtA[:n], nil
 }
 
-func (m *DomainAssociationCreatePacketAcknowledgement) MarshalTo(dAtA []byte) (int, error) {
+func (m *DomainMappingCreatePacketAcknowledgement) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DomainAssociationCreatePacketAcknowledgement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DomainMappingCreatePacketAcknowledgement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -494,7 +490,7 @@ func (m *DomainAssociationCreatePacketAcknowledgement) MarshalToSizedBuffer(dAtA
 	return len(dAtA) - i, nil
 }
 
-func (m *DomainAssociationResultPacketData) Marshal() (dAtA []byte, err error) {
+func (m *DomainMappingResultPacketData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -504,12 +500,12 @@ func (m *DomainAssociationResultPacketData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DomainAssociationResultPacketData) MarshalTo(dAtA []byte) (int, error) {
+func (m *DomainMappingResultPacketData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DomainAssociationResultPacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DomainMappingResultPacketData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -539,7 +535,7 @@ func (m *DomainAssociationResultPacketData) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
-func (m *DomainAssociationResultPacketAcknowledgement) Marshal() (dAtA []byte, err error) {
+func (m *DomainMappingResultPacketAcknowledgement) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -549,12 +545,12 @@ func (m *DomainAssociationResultPacketAcknowledgement) Marshal() (dAtA []byte, e
 	return dAtA[:n], nil
 }
 
-func (m *DomainAssociationResultPacketAcknowledgement) MarshalTo(dAtA []byte) (int, error) {
+func (m *DomainMappingResultPacketAcknowledgement) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DomainAssociationResultPacketAcknowledgement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DomainMappingResultPacketAcknowledgement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -646,7 +642,7 @@ func (m *RegisterDomainPacketAcknowledgement) Size() (n int) {
 	return n
 }
 
-func (m *DomainAssociationCreatePacketData) Size() (n int) {
+func (m *DomainMappingCreatePacketData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -659,7 +655,7 @@ func (m *DomainAssociationCreatePacketData) Size() (n int) {
 	return n
 }
 
-func (m *DomainAssociationCreatePacketAcknowledgement) Size() (n int) {
+func (m *DomainMappingCreatePacketAcknowledgement) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -675,7 +671,7 @@ func (m *DomainAssociationCreatePacketAcknowledgement) Size() (n int) {
 	return n
 }
 
-func (m *DomainAssociationResultPacketData) Size() (n int) {
+func (m *DomainMappingResultPacketData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -693,7 +689,7 @@ func (m *DomainAssociationResultPacketData) Size() (n int) {
 	return n
 }
 
-func (m *DomainAssociationResultPacketAcknowledgement) Size() (n int) {
+func (m *DomainMappingResultPacketAcknowledgement) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -946,7 +942,7 @@ func (m *RegisterDomainPacketAcknowledgement) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DomainAssociationCreatePacketData) Unmarshal(dAtA []byte) error {
+func (m *DomainMappingCreatePacketData) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -969,10 +965,10 @@ func (m *DomainAssociationCreatePacketData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DomainAssociationCreatePacketData: wiretype end group for non-group")
+			return fmt.Errorf("proto: DomainMappingCreatePacketData: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DomainAssociationCreatePacketData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DomainMappingCreatePacketData: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1065,7 +1061,7 @@ func (m *DomainAssociationCreatePacketData) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DomainAssociationCreatePacketAcknowledgement) Unmarshal(dAtA []byte) error {
+func (m *DomainMappingCreatePacketAcknowledgement) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1088,10 +1084,10 @@ func (m *DomainAssociationCreatePacketAcknowledgement) Unmarshal(dAtA []byte) er
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DomainAssociationCreatePacketAcknowledgement: wiretype end group for non-group")
+			return fmt.Errorf("proto: DomainMappingCreatePacketAcknowledgement: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DomainAssociationCreatePacketAcknowledgement: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DomainMappingCreatePacketAcknowledgement: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1169,7 +1165,7 @@ func (m *DomainAssociationCreatePacketAcknowledgement) Unmarshal(dAtA []byte) er
 	}
 	return nil
 }
-func (m *DomainAssociationResultPacketData) Unmarshal(dAtA []byte) error {
+func (m *DomainMappingResultPacketData) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1192,10 +1188,10 @@ func (m *DomainAssociationResultPacketData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DomainAssociationResultPacketData: wiretype end group for non-group")
+			return fmt.Errorf("proto: DomainMappingResultPacketData: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DomainAssociationResultPacketData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DomainMappingResultPacketData: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1306,7 +1302,7 @@ func (m *DomainAssociationResultPacketData) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DomainAssociationResultPacketAcknowledgement) Unmarshal(dAtA []byte) error {
+func (m *DomainMappingResultPacketAcknowledgement) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1329,10 +1325,10 @@ func (m *DomainAssociationResultPacketAcknowledgement) Unmarshal(dAtA []byte) er
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DomainAssociationResultPacketAcknowledgement: wiretype end group for non-group")
+			return fmt.Errorf("proto: DomainMappingResultPacketAcknowledgement: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DomainAssociationResultPacketAcknowledgement: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DomainMappingResultPacketAcknowledgement: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/client/types"
 )
 
 var _ types.MsgServer = Keeper{}
@@ -37,25 +37,25 @@ func (k Keeper) RegisterDomain(goCtx context.Context, msg *types.MsgRegisterDoma
 
 }
 
-func (k Keeper) DomainAssociationCreate(goCtx context.Context, msg *types.MsgDomainAssociationCreate) (*types.MsgDomainAssociationCreateResponse, error) {
+func (k Keeper) DomainMappingCreate(goCtx context.Context, msg *types.MsgDomainMappingCreate) (*types.MsgDomainMappingCreateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_, err := k.SendDomainAssociationCreatePacketData(
+	_, err := k.SendDomainMappingCreatePacketData(
 		ctx,
 		msg.DnsId,
 		msg.SrcClient,
 		msg.DstClient,
 	)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'DomainAssociationCreatePacketData': %v", err)
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to send a packet 'DomainMappingCreatePacketData': %v", err)
 	}
 
 	k.Logger(ctx).Info(
-		"IBC dns domain association create",
+		"IBC dns domain mapping create",
 		"dnsId", msg.DnsId,
 		"src client", msg.SrcClient,
 		"dst client", msg.DstClient,
 	)
 
-	return &types.MsgDomainAssociationCreateResponse{}, nil
+	return &types.MsgDomainMappingCreateResponse{}, nil
 }

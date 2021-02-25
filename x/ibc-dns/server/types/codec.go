@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 // RegisterInterfaces register the ibc transfer module interfaces to protobuf
@@ -15,16 +15,16 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		"ibc.dns.server.v1.PacketData",
 		(*types.PacketDataI)(nil),
 		&RegisterDomainPacketData{},
-		&DomainAssociationCreatePacketData{},
-		&DomainAssociationResultPacketData{},
+		&DomainMappingCreatePacketData{},
+		&DomainMappingResultPacketData{},
 	)
 
 	registry.RegisterInterface(
 		"ibc.dns.server.v1.PacketAcknowledgement",
 		(*types.PacketAcknowledgementI)(nil),
 		&RegisterDomainPacketAcknowledgement{},
-		&DomainAssociationCreatePacketAcknowledgement{},
-		&DomainAssociationResultPacketAcknowledgement{},
+		&DomainMappingCreatePacketAcknowledgement{},
+		&DomainMappingResultPacketAcknowledgement{},
 	)
 }
 

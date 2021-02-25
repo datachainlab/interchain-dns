@@ -14,7 +14,7 @@ Therefore, we propose DNS Module that provides a unique identifier for each chai
 
 ## Implementation
 
-Please check [here](https://github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns).
+Please check [here](https://github.com/datachainlab/interchain-dns/x/ibc-dns).
 
 ## Maintainers
 

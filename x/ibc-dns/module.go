@@ -22,14 +22,14 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc"
 
-	dnsclient "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client"
-	clientkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/keeper"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
-	dnskeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
-	dnsserver "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server"
-	serverkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/keeper"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/types"
+	dnsclient "github.com/datachainlab/interchain-dns/x/ibc-dns/client"
+	clientkeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/client/keeper"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/keeper"
+	dnskeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/keeper"
+	dnsserver "github.com/datachainlab/interchain-dns/x/ibc-dns/server"
+	serverkeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/server/keeper"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/types"
 )
 
 const (

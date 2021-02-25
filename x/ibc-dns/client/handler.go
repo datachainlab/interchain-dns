@@ -7,10 +7,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/keeper"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/client/keeper"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/client/types"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	servertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 // NewHandler returns a handler
@@ -22,8 +22,8 @@ func NewHandler(keeper types.MsgServer) sdk.Handler {
 		case *types.MsgRegisterDomain:
 			res, err := keeper.RegisterDomain(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgDomainAssociationCreate:
-			res, err := keeper.DomainAssociationCreate(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDomainMappingCreate:
+			res, err := keeper.DomainMappingCreate(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			return nil, commontypes.ErrUnknownRequest
@@ -39,29 +39,29 @@ func NewPacketReceiver(keeper keeper.Keeper) commontypes.PacketReceiver {
 			return nil, nil, err
 		}
 		switch data := data.(type) {
-		case *servertypes.DomainAssociationResultPacketData:
-			return handleDomainAssociationResultPacketData(ctx, keeper, packet, data)
+		case *servertypes.DomainMappingResultPacketData:
+			return handleDomainMappingResultPacketData(ctx, keeper, packet, data)
 		default:
 			return nil, nil, commontypes.ErrUnknownRequest
 		}
 	}
 }
 
-func handleDomainAssociationResultPacketData(
+func handleDomainMappingResultPacketData(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
 	packet channeltypes.Packet,
-	data *servertypes.DomainAssociationResultPacketData,
+	data *servertypes.DomainMappingResultPacketData,
 ) (*sdk.Result, []byte, error) {
 	switch data.Status {
 	case servertypes.STATUS_OK:
-		err := keeper.ReceiveDomainAssociationResultPacketData(
+		err := keeper.ReceiveDomainMappingResultPacketData(
 			ctx,
 			packet,
 			data,
 		)
 		if err != nil {
-			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainAssociationResultPacketData: %v'", err)
+			return nil, nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainMappingResultPacketData: %v'", err)
 		}
 	case servertypes.STATUS_FAILED:
 		// TODO cleanup
@@ -69,7 +69,7 @@ func handleDomainAssociationResultPacketData(
 		return nil, nil, fmt.Errorf("unknown status '%v'", data.Status)
 	}
 
-	ack := servertypes.NewDomainAssociationResultPacketAcknowledgement()
+	ack := servertypes.NewDomainMappingResultPacketAcknowledgement()
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, ack.GetBytes(), nil
 }
 
@@ -83,8 +83,8 @@ func NewPacketAcknowledgementReceiver(keeper keeper.Keeper) commontypes.PacketAc
 		switch ackData := ackData.(type) {
 		case *servertypes.RegisterDomainPacketAcknowledgement:
 			return handleRegisterDomainPacketAcknowledgement(ctx, keeper, ackData, packet)
-		case *servertypes.DomainAssociationCreatePacketAcknowledgement:
-			return handleDomainAssociationCreatePacketAcknowledgement(ctx, keeper, ackData)
+		case *servertypes.DomainMappingCreatePacketAcknowledgement:
+			return handleDomainMappingCreatePacketAcknowledgement(ctx, keeper, ackData)
 		default:
 			return nil, commontypes.ErrUnknownRequest
 		}
@@ -98,9 +98,9 @@ func handleRegisterDomainPacketAcknowledgement(ctx sdk.Context, k keeper.Keeper,
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }
 
-func handleDomainAssociationCreatePacketAcknowledgement(ctx sdk.Context, k keeper.Keeper, ack *servertypes.DomainAssociationCreatePacketAcknowledgement) (*sdk.Result, error) {
-	if err := k.ReceiveDomainAssociationCreatePacketAcknowledgement(ctx, ack.Status); err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainAssociationCreatePacketAcknowledgement: %v'", err)
+func handleDomainMappingCreatePacketAcknowledgement(ctx sdk.Context, k keeper.Keeper, ack *servertypes.DomainMappingCreatePacketAcknowledgement) (*sdk.Result, error) {
+	if err := k.ReceiveDomainMappingCreatePacketAcknowledgement(ctx, ack.Status); err != nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed to handle a packet 'DomainMappingCreatePacketAcknowledgement: %v'", err)
 	}
 	return &sdk.Result{Events: ctx.EventManager().ABCIEvents()}, nil
 }

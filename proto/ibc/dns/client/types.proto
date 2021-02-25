@@ -1,7 +1,7 @@
 syntax = "proto3";
 package ibc.dns.client;
 
-option go_package = "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types";
+option go_package = "github.com/datachainlab/interchain-dns/x/ibc-dns/client/types";
 
 import "gogoproto/gogo.proto";
 import "ibc/dns/common/types.proto";
@@ -9,7 +9,7 @@ import "ibc/dns/common/types.proto";
 // Msg defines the ibc/transfer Msg service.
 service Msg {
     rpc RegisterDomain(MsgRegisterDomain) returns (MsgRegisterDomainResponse);
-    rpc DomainAssociationCreate(MsgDomainAssociationCreate) returns (MsgDomainAssociationCreateResponse);
+    rpc DomainMappingCreate(MsgDomainMappingCreate) returns (MsgDomainMappingCreateResponse);
 }
 
 message MsgRegisterDomain {
@@ -29,7 +29,7 @@ message MsgRegisterDomain {
 
 message MsgRegisterDomainResponse { }
 
-message MsgDomainAssociationCreate {
+message MsgDomainMappingCreate {
     option (gogoproto.goproto_getters) = false;
     bytes sender = 1;
     ibc.dns.common.LocalDNSID dns_id = 2 [
@@ -43,4 +43,4 @@ message MsgDomainAssociationCreate {
     ];
 }
 
-message MsgDomainAssociationCreateResponse { }
+message MsgDomainMappingCreateResponse { }

@@ -3,9 +3,9 @@ package types
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	clienttypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	clienttypes "github.com/datachainlab/interchain-dns/x/ibc-dns/client/types"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	servertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 // RegisterInterfaces registers x/ibc interfaces into protobuf Any.

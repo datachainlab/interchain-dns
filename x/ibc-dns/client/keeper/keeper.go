@@ -13,9 +13,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
-	clienttypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	clienttypes "github.com/datachainlab/interchain-dns/x/ibc-dns/client/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	servertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 // Keeper defines ibc-dns keeper
@@ -80,8 +80,8 @@ func (k Keeper) ReceiveRegisterDomainPacketAcknowledgement(ctx sdk.Context, stat
 	return k.setSelfDomainName(ctx, types.NewLocalDNSID(packet.SourcePort, packet.SourceChannel), domain)
 }
 
-// SendDomainAssociationCreatePacketData sends a packet to associate a domain with client on DNS server
-func (k Keeper) SendDomainAssociationCreatePacketData(
+// SendDomainMappingCreatePacketData sends a packet to associate a domain with client on DNS server
+func (k Keeper) SendDomainMappingCreatePacketData(
 	ctx sdk.Context,
 	dnsID types.LocalDNSID,
 	srcClient types.ClientDomain,
@@ -95,7 +95,7 @@ func (k Keeper) SendDomainAssociationCreatePacketData(
 	if !found {
 		return nil, fmt.Errorf("client state not found: clientID=%v", srcClient.ClientId)
 	}
-	data := servertypes.NewDomainAssociationCreatePacketData(srcClient, dstClient)
+	data := servertypes.NewDomainMappingCreatePacketData(srcClient, dstClient)
 	c, found := k.channelKeeper.GetChannel(ctx, dnsID.SourcePort, dnsID.SourceChannel)
 	if !found {
 		return nil, fmt.Errorf("channel not found: port=%v channel=%v", dnsID.SourcePort, dnsID.SourceChannel)
@@ -111,8 +111,8 @@ func (k Keeper) SendDomainAssociationCreatePacketData(
 	)
 }
 
-// ReceiveDomainAssociationCreatePacketAcknowledgement receive an ack
-func (k Keeper) ReceiveDomainAssociationCreatePacketAcknowledgement(ctx sdk.Context, status uint32) error {
+// ReceiveDomainMappingCreatePacketAcknowledgement receive an ack
+func (k Keeper) ReceiveDomainMappingCreatePacketAcknowledgement(ctx sdk.Context, status uint32) error {
 	// TODO cleanup any state
 	if status != servertypes.STATUS_OK {
 		k.Logger(ctx).Info("failed to register a local channel", "status", status)
@@ -121,11 +121,11 @@ func (k Keeper) ReceiveDomainAssociationCreatePacketAcknowledgement(ctx sdk.Cont
 	return nil
 }
 
-// ReceiveDomainAssociationResultPacketData receives a packet to save a domain info on local state
-func (k Keeper) ReceiveDomainAssociationResultPacketData(
+// ReceiveDomainMappingResultPacketData receives a packet to save a domain info on local state
+func (k Keeper) ReceiveDomainMappingResultPacketData(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	data *servertypes.DomainAssociationResultPacketData,
+	data *servertypes.DomainMappingResultPacketData,
 ) error {
 	dnsID := types.NewLocalDNSID(packet.DestinationPort, packet.DestinationChannel)
 	_, found := k.GetSelfDomainName(ctx, dnsID)

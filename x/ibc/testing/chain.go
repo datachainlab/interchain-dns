@@ -38,8 +38,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc/testing/mock"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/simapp"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 const (

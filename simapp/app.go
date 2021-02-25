@@ -85,13 +85,13 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	dns "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns"
-	dnsclientkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/keeper"
-	dnsclienttypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/client/types"
-	dnscommontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	dnskeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/keeper"
-	dnsserverkeeper "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/keeper"
-	dnsservertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	dns "github.com/datachainlab/interchain-dns/x/ibc-dns"
+	dnsclientkeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/client/keeper"
+	dnsclienttypes "github.com/datachainlab/interchain-dns/x/ibc-dns/client/types"
+	dnscommontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	dnskeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/keeper"
+	dnsserverkeeper "github.com/datachainlab/interchain-dns/x/ibc-dns/server/keeper"
+	dnsservertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 const appName = "SimApp"

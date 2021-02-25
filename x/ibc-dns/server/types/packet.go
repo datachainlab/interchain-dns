@@ -6,16 +6,16 @@ import (
 
 	ibcclienttypes "github.com/cosmos/cosmos-sdk/x/ibc/core/02-client/types"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 const (
-	PacketTypeRegisterChannelDomain                  = "register_channel_domain"
-	PacketTypeRegisterChannelDomainAcknowledgement   = "register_channel_domain_acknowledgement"
-	PacketTypeDomainAssociationCreate                = "domain_association_create"
-	PacketTypeDomainAssociationCreateAcknowledgement = "domain_association_create_acknowledgement"
-	PacketTypeDomainAssociationResult                = "domain_association_result"
-	PacketTypeDomainAssociationResultAcknowledgement = "domain_association_result_acknowledgement"
+	PacketTypeRegisterChannelDomain                = "register_channel_domain"
+	PacketTypeRegisterChannelDomainAcknowledgement = "register_channel_domain_acknowledgement"
+	PacketTypeDomainMappingCreate                  = "domain_mapping_create"
+	PacketTypeDomainMappingCreateAcknowledgement   = "domain_mapping_create_acknowledgement"
+	PacketTypeDomainMappingResult                  = "domain_mapping_result"
+	PacketTypeDomainMappingResultAcknowledgement   = "domain_mapping_result_acknowledgement"
 )
 
 // Define RegisterDomainPacketData
@@ -82,19 +82,19 @@ func (p RegisterDomainPacketAcknowledgement) Type() string {
 	return PacketTypeRegisterChannelDomainAcknowledgement
 }
 
-// Define DomainAssociationCreatePacketData
+// Define DomainMappingCreatePacketData
 
-var _ types.PacketDataI = (*DomainAssociationCreatePacketData)(nil)
+var _ types.PacketDataI = (*DomainMappingCreatePacketData)(nil)
 
-func NewDomainAssociationCreatePacketData(srcClientDomain, dstClientDomain types.ClientDomain) DomainAssociationCreatePacketData {
-	return DomainAssociationCreatePacketData{SrcClient: srcClientDomain, DstClient: dstClientDomain}
+func NewDomainMappingCreatePacketData(srcClientDomain, dstClientDomain types.ClientDomain) DomainMappingCreatePacketData {
+	return DomainMappingCreatePacketData{SrcClient: srcClientDomain, DstClient: dstClientDomain}
 }
 
-func (p DomainAssociationCreatePacketData) ValidateBasic() error {
+func (p DomainMappingCreatePacketData) ValidateBasic() error {
 	return nil
 }
 
-func (p DomainAssociationCreatePacketData) GetBytes() []byte {
+func (p DomainMappingCreatePacketData) GetBytes() []byte {
 	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
 	if err != nil {
 		panic(err)
@@ -102,31 +102,31 @@ func (p DomainAssociationCreatePacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationCreatePacketData) GetTimeoutHeight() ibcclienttypes.Height {
+func (p DomainMappingCreatePacketData) GetTimeoutHeight() ibcclienttypes.Height {
 	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
-func (p DomainAssociationCreatePacketData) GetTimeoutTimestamp() uint64 {
+func (p DomainMappingCreatePacketData) GetTimeoutTimestamp() uint64 {
 	return 0
 }
 
-func (p DomainAssociationCreatePacketData) Type() string {
-	return PacketTypeDomainAssociationCreate
+func (p DomainMappingCreatePacketData) Type() string {
+	return PacketTypeDomainMappingCreate
 }
 
-// Define DomainAssociationCreatePacketAcknowledgement
+// Define DomainMappingCreatePacketAcknowledgement
 
-var _ types.PacketAcknowledgementI = (*DomainAssociationCreatePacketAcknowledgement)(nil)
+var _ types.PacketAcknowledgementI = (*DomainMappingCreatePacketAcknowledgement)(nil)
 
-func NewDomainAssociationCreatePacketAcknowledgement(status uint32, msg string) DomainAssociationCreatePacketAcknowledgement {
-	return DomainAssociationCreatePacketAcknowledgement{Status: status, Msg: msg}
+func NewDomainMappingCreatePacketAcknowledgement(status uint32, msg string) DomainMappingCreatePacketAcknowledgement {
+	return DomainMappingCreatePacketAcknowledgement{Status: status, Msg: msg}
 }
 
-func (p DomainAssociationCreatePacketAcknowledgement) ValidateBasic() error {
+func (p DomainMappingCreatePacketAcknowledgement) ValidateBasic() error {
 	return nil
 }
 
-func (p DomainAssociationCreatePacketAcknowledgement) GetBytes() []byte {
+func (p DomainMappingCreatePacketAcknowledgement) GetBytes() []byte {
 	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
 	if err != nil {
 		panic(err)
@@ -134,32 +134,32 @@ func (p DomainAssociationCreatePacketAcknowledgement) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationCreatePacketAcknowledgement) Type() string {
-	return PacketTypeDomainAssociationCreateAcknowledgement
+func (p DomainMappingCreatePacketAcknowledgement) Type() string {
+	return PacketTypeDomainMappingCreateAcknowledgement
 }
 
-// Define DomainAssociationResultPacketData
+// Define DomainMappingResultPacketData
 
-var _ types.PacketDataI = (*DomainAssociationResultPacketData)(nil)
+var _ types.PacketDataI = (*DomainMappingResultPacketData)(nil)
 
-func NewDomainAssociationResultPacketData(
+func NewDomainMappingResultPacketData(
 	status uint32,
 	counterpartyDomainName string,
 	dnsID types.LocalDNSID,
 	clientID string,
-) DomainAssociationResultPacketData {
-	return DomainAssociationResultPacketData{
+) DomainMappingResultPacketData {
+	return DomainMappingResultPacketData{
 		Status:             status,
 		CounterpartyDomain: types.NewLocalDomain(dnsID, counterpartyDomainName),
 		ClientId:           clientID,
 	}
 }
 
-func (p DomainAssociationResultPacketData) ValidateBasic() error {
+func (p DomainMappingResultPacketData) ValidateBasic() error {
 	return nil
 }
 
-func (p DomainAssociationResultPacketData) GetBytes() []byte {
+func (p DomainMappingResultPacketData) GetBytes() []byte {
 	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
 	if err != nil {
 		panic(err)
@@ -167,31 +167,31 @@ func (p DomainAssociationResultPacketData) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationResultPacketData) GetTimeoutHeight() ibcclienttypes.Height {
+func (p DomainMappingResultPacketData) GetTimeoutHeight() ibcclienttypes.Height {
 	return ibcclienttypes.NewHeight(0, math.MaxInt64)
 }
 
-func (p DomainAssociationResultPacketData) GetTimeoutTimestamp() uint64 {
+func (p DomainMappingResultPacketData) GetTimeoutTimestamp() uint64 {
 	return 0
 }
 
-func (p DomainAssociationResultPacketData) Type() string {
-	return PacketTypeDomainAssociationResult
+func (p DomainMappingResultPacketData) Type() string {
+	return PacketTypeDomainMappingResult
 }
 
-// Define DomainAssociationResultPacketAcknowledgement
+// Define DomainMappingResultPacketAcknowledgement
 
-var _ types.PacketAcknowledgementI = (*DomainAssociationResultPacketAcknowledgement)(nil)
+var _ types.PacketAcknowledgementI = (*DomainMappingResultPacketAcknowledgement)(nil)
 
-func NewDomainAssociationResultPacketAcknowledgement() DomainAssociationResultPacketAcknowledgement {
-	return DomainAssociationResultPacketAcknowledgement{}
+func NewDomainMappingResultPacketAcknowledgement() DomainMappingResultPacketAcknowledgement {
+	return DomainMappingResultPacketAcknowledgement{}
 }
 
-func (p DomainAssociationResultPacketAcknowledgement) ValidateBasic() error {
+func (p DomainMappingResultPacketAcknowledgement) ValidateBasic() error {
 	return nil
 }
 
-func (p DomainAssociationResultPacketAcknowledgement) GetBytes() []byte {
+func (p DomainMappingResultPacketAcknowledgement) GetBytes() []byte {
 	bz, err := types.SerializeJSONPacketData(PacketCdc(), &p)
 	if err != nil {
 		panic(err)
@@ -199,6 +199,6 @@ func (p DomainAssociationResultPacketAcknowledgement) GetBytes() []byte {
 	return bz
 }
 
-func (p DomainAssociationResultPacketAcknowledgement) Type() string {
-	return PacketTypeDomainAssociationResultAcknowledgement
+func (p DomainMappingResultPacketAcknowledgement) Type() string {
+	return PacketTypeDomainMappingResultAcknowledgement
 }

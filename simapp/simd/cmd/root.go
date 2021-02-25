@@ -32,7 +32,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp"
+	"github.com/datachainlab/interchain-dns/simapp"
 )
 
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {

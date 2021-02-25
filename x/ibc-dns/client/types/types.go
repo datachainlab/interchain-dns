@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
+	commontypes "github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
 )
 
 const (
-	TypeRegisterChannelDomain   string = "register_channel_domain"
-	TypeDomainAssociationCreate string = "domain_association_create"
+	TypeRegisterChannelDomain string = "register_channel_domain"
+	TypeDomainMappingCreate   string = "domain_mapping_create"
 )
 
 var _ sdk.Msg = (*MsgRegisterDomain)(nil)
@@ -43,25 +43,25 @@ func (msg MsgRegisterDomain) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }
 
-var _ sdk.Msg = (*MsgDomainAssociationCreate)(nil)
+var _ sdk.Msg = (*MsgDomainMappingCreate)(nil)
 
 // Route implements sdk.Msg
-func (MsgDomainAssociationCreate) Route() string {
+func (MsgDomainMappingCreate) Route() string {
 	return commontypes.RouterKey
 }
 
 // Type implements sdk.Msg
-func (MsgDomainAssociationCreate) Type() string {
-	return TypeDomainAssociationCreate
+func (MsgDomainMappingCreate) Type() string {
+	return TypeDomainMappingCreate
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgDomainAssociationCreate) ValidateBasic() error {
+func (msg MsgDomainMappingCreate) ValidateBasic() error {
 	return nil
 }
 
 // GetSignBytes implements sdk.Msg
-func (msg MsgDomainAssociationCreate) GetSignBytes() []byte {
+func (msg MsgDomainMappingCreate) GetSignBytes() []byte {
 	bz, err := json.Marshal(msg)
 	if err != nil {
 		panic(err)
@@ -70,6 +70,6 @@ func (msg MsgDomainAssociationCreate) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgDomainAssociationCreate) GetSigners() []sdk.AccAddress {
+func (msg MsgDomainMappingCreate) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }

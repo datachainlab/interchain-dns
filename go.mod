@@ -1,4 +1,4 @@
-module github.com/datachainlab/cosmos-sdk-interchain-dns
+module github.com/datachainlab/interchain-dns
 
 go 1.15
 

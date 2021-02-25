@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	dnsservertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
-	ibctesting "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc/testing"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	dnsservertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
+	servertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
+	ibctesting "github.com/datachainlab/interchain-dns/x/ibc/testing"
 )
 
 func TestDNSKeeperTestSuite(t *testing.T) {
@@ -84,7 +84,7 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 	require.False(found)
 }
 
-func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
+func (suite *DNSKeeperTestSuite) TestDomainMapping() {
 	require := suite.Require()
 
 	const (
@@ -100,9 +100,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 
 	dnsID0 := types.NewLocalDNSID(suite.chA0toD0.PortID, suite.chA0toD0.ID)
 
-	// app0: try to create a domain association
+	// app0: try to create a domain mapping
 	{
-		packet, err := suite.app0.App.DNSClientKeeper.SendDomainAssociationCreatePacketData(
+		packet, err := suite.app0.App.DNSClientKeeper.SendDomainMappingCreatePacketData(
 			suite.app0.GetContext(),
 			dnsID0,
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
@@ -111,8 +111,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.PortID, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.ID, packet.GetSourceChannel())
-		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
-		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainMappingCreatePacketData)
+		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainMappingCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
 			data,
@@ -122,9 +122,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 	}
 
 	dnsID1 := types.NewLocalDNSID(suite.chA1toD0.PortID, suite.chA1toD0.ID)
-	// app1: try to confirm the domain association
+	// app1: try to confirm the domain mapping
 	{
-		packet, err := suite.app1.App.DNSClientKeeper.SendDomainAssociationCreatePacketData(
+		packet, err := suite.app1.App.DNSClientKeeper.SendDomainMappingCreatePacketData(
 			suite.app1.GetContext(),
 			dnsID1,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
@@ -133,8 +133,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.PortID, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.ID, packet.GetSourceChannel())
-		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
-		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainMappingCreatePacketData)
+		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainMappingCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
 			data,
@@ -143,9 +143,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.Equal(ack.Status, servertypes.STATUS_OK)
 	}
 
-	// dns0: create a domain association
+	// dns0: create a domain mapping
 	{
-		srcPacket, dstPacket, err := suite.dns0.App.DNSServerKeeper.CreateDomainAssociationResultPacketData(
+		srcPacket, dstPacket, err := suite.dns0.App.DNSServerKeeper.CreateDomainMappingResultPacketData(
 			suite.dns0.GetContext(),
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
@@ -153,26 +153,26 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainMappingResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(suite.app1.ChainID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainMappingResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.ChainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
 
-		// receive the result of domain association
+		// receive the result of domain mapping
 		require.NoError(
-			suite.app0.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
+			suite.app0.App.DNSClientKeeper.ReceiveDomainMappingResultPacketData(
 				suite.app0.GetContext(),
 				*dstPacket,
 				dstData,
 			),
 		)
 		require.NoError(
-			suite.app1.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
+			suite.app1.App.DNSClientKeeper.ReceiveDomainMappingResultPacketData(
 				suite.app1.GetContext(),
 				*srcPacket,
 				srcData,
@@ -264,9 +264,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 	newConnA0toA1, newConnA1toA0 := suite.coordinator.CreateConnection(suite.app0, suite.app1, app1ClientID, suite.app0.ChainID)
 	newChA0toA1, newChA1toA0 := suite.coordinator.CreateMockChannels(suite.app0, suite.app1, newConnA0toA1, newConnA1toA0, channeltypes.UNORDERED)
 
-	// app0: try to create a domain association
+	// app0: try to create a domain mapping
 	{
-		packet, err := suite.app0.App.DNSClientKeeper.SendDomainAssociationCreatePacketData(
+		packet, err := suite.app0.App.DNSClientKeeper.SendDomainMappingCreatePacketData(
 			suite.app0.GetContext(),
 			dnsID0,
 			types.NewClientDomain(app0Name, app1ClientID),
@@ -275,8 +275,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA0toD0.PortID, packet.GetSourcePort())
 		require.Equal(suite.chA0toD0.ID, packet.GetSourceChannel())
-		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
-		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainMappingCreatePacketData)
+		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainMappingCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
 			data,
@@ -285,9 +285,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.Equal(ack.Status, servertypes.STATUS_OK)
 	}
 
-	// app1: try to confirm the domain association
+	// app1: try to confirm the domain mapping
 	{
-		packet, err := suite.app1.App.DNSClientKeeper.SendDomainAssociationCreatePacketData(
+		packet, err := suite.app1.App.DNSClientKeeper.SendDomainMappingCreatePacketData(
 			suite.app1.GetContext(),
 			dnsID1,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
@@ -296,8 +296,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.NoError(err)
 		require.Equal(suite.chA1toD0.PortID, packet.GetSourcePort())
 		require.Equal(suite.chA1toD0.ID, packet.GetSourceChannel())
-		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
-		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
+		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainMappingCreatePacketData)
+		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainMappingCreatePacketData(
 			suite.dns0.GetContext(),
 			*packet,
 			data,
@@ -306,9 +306,9 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.Equal(ack.Status, servertypes.STATUS_OK)
 	}
 
-	// dns0: create a domain association
+	// dns0: create a domain mapping
 	{
-		srcPacket, dstPacket, err := suite.dns0.App.DNSServerKeeper.CreateDomainAssociationResultPacketData(
+		srcPacket, dstPacket, err := suite.dns0.App.DNSServerKeeper.CreateDomainMappingResultPacketData(
 			suite.dns0.GetContext(),
 			servertypes.STATUS_OK,
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
@@ -316,26 +316,26 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		)
 		require.NoError(err)
 
-		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
+		srcData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), srcPacket.GetData()).(*dnsservertypes.DomainMappingResultPacketData)
 		require.Equal(servertypes.STATUS_OK, srcData.Status)
 		require.Equal(app1ClientID, srcData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID0, app0Name), srcData.CounterpartyDomain)
 
-		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainAssociationResultPacketData)
+		dstData := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), dstPacket.GetData()).(*dnsservertypes.DomainMappingResultPacketData)
 		require.Equal(servertypes.STATUS_OK, dstData.Status)
 		require.Equal(suite.app0.ChainID, dstData.ClientId)
 		require.Equal(types.NewLocalDomain(dnsID1, app1Name), dstData.CounterpartyDomain)
 
-		// receive the result of domain association
+		// receive the result of domain mapping
 		require.NoError(
-			suite.app0.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
+			suite.app0.App.DNSClientKeeper.ReceiveDomainMappingResultPacketData(
 				suite.app0.GetContext(),
 				*dstPacket,
 				dstData,
 			),
 		)
 		require.NoError(
-			suite.app1.App.DNSClientKeeper.ReceiveDomainAssociationResultPacketData(
+			suite.app1.App.DNSClientKeeper.ReceiveDomainMappingResultPacketData(
 				suite.app1.GetContext(),
 				*srcPacket,
 				srcData,

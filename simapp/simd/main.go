@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/server"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/simapp/simd/cmd"
+	"github.com/datachainlab/interchain-dns/simapp/simd/cmd"
 )
 
 func main() {

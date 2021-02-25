@@ -13,8 +13,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
-	servertypes "github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/server/types"
+	"github.com/datachainlab/interchain-dns/x/ibc-dns/common/types"
+	servertypes "github.com/datachainlab/interchain-dns/x/ibc-dns/server/types"
 )
 
 // Keeper defines ibc-dns keeper
@@ -46,23 +46,23 @@ func (k Keeper) ReceivePacketRegisterDomain(ctx sdk.Context, packet channeltypes
 	return k.registerDomain(ctx, data.DomainName, c, data.Metadata)
 }
 
-// ReceiveDomainAssociationCreatePacketData receives a DomainAssociationCreatePacketData to associate domain with client
-func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet channeltypes.Packet, data *servertypes.DomainAssociationCreatePacketData) (ack servertypes.DomainAssociationCreatePacketAcknowledgement, completed bool) {
+// ReceiveDomainMappingCreatePacketData receives a DomainMappingCreatePacketData to associate domain with client
+func (k Keeper) ReceiveDomainMappingCreatePacketData(ctx sdk.Context, packet channeltypes.Packet, data *servertypes.DomainMappingCreatePacketData) (ack servertypes.DomainMappingCreatePacketAcknowledgement, completed bool) {
 	// check if counterparty domain exists
 	_, err := k.ForwardLookupDomain(ctx, data.DstClient.DomainName)
 	if err != nil {
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
 	}
 	srcName, err := k.ReverseLookupDomain(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
 	}
 	if data.SrcClient.DomainName != srcName {
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, fmt.Sprintf("unexpected domain name: actual=%v expected=%v", data.SrcClient.DomainName, srcName)), false
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, fmt.Sprintf("unexpected domain name: actual=%v expected=%v", data.SrcClient.DomainName, srcName)), false
 	}
 
 	if k.ensureClientDomainExistence(ctx, data.SrcClient, data.DstClient) {
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, fmt.Sprintf("this association is already created: src=%v dst=%v", data.SrcClient.String(), data.DstClient.String())), false
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, fmt.Sprintf("this association is already created: src=%v dst=%v", data.SrcClient.String(), data.DstClient.String())), false
 	}
 
 	// check if opposite association already exists
@@ -70,24 +70,24 @@ func (k Keeper) ReceiveDomainAssociationCreatePacketData(ctx sdk.Context, packet
 	// if not exists, try to create a new association
 	exists := k.ensureClientDomainExistence(ctx, data.DstClient, data.SrcClient)
 	if !exists {
-		err := k.createDomainAssociation(ctx, data.SrcClient, data.DstClient)
+		err := k.createDomainMapping(ctx, data.SrcClient, data.DstClient)
 		if err == nil {
-			return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_OK, "ok"), false
+			return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_OK, "ok"), false
 		} else {
-			return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
+			return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), false
 		}
 	}
 
-	if err := k.confirmDomainAssociation(ctx, data.SrcClient, data.DstClient); err != nil {
-		k.Logger(ctx).Info("failed to confirm the domain association", "err", err)
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), true
+	if err := k.confirmDomainMapping(ctx, data.SrcClient, data.DstClient); err != nil {
+		k.Logger(ctx).Info("failed to confirm the domain mapping", "err", err)
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_FAILED, err.Error()), true
 	} else {
-		return servertypes.NewDomainAssociationCreatePacketAcknowledgement(servertypes.STATUS_OK, "ok"), true
+		return servertypes.NewDomainMappingCreatePacketAcknowledgement(servertypes.STATUS_OK, "ok"), true
 	}
 }
 
-// CreateDomainAssociationResultPacketData creates a packet 'DomainAssociationResultPacketData'
-func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) (srcPacket *channeltypes.Packet, dstPacket *channeltypes.Packet, err error) {
+// CreateDomainMappingResultPacketData creates a packet 'DomainMappingResultPacketData'
+func (k Keeper) CreateDomainMappingResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) (srcPacket *channeltypes.Packet, dstPacket *channeltypes.Packet, err error) {
 	srcLocalDNSID, err := k.GetLocalDNSID(ctx, srcClientDomain.DomainName)
 	if err != nil {
 		return
@@ -108,14 +108,14 @@ func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status 
 	srcChannel := srcDomainInfo.Channel
 	dstChannel := dstDomainInfo.Channel
 
-	toSrcData := servertypes.NewDomainAssociationResultPacketData(
+	toSrcData := servertypes.NewDomainMappingResultPacketData(
 		status,
 		dstClientDomain.DomainName,
 		*dstLocalDNSID,
 		dstClientDomain.ClientId,
 	)
 
-	toDstData := servertypes.NewDomainAssociationResultPacketData(
+	toDstData := servertypes.NewDomainMappingResultPacketData(
 		status,
 		srcClientDomain.DomainName,
 		*srcLocalDNSID,
@@ -153,9 +153,9 @@ func (k Keeper) CreateDomainAssociationResultPacketData(ctx sdk.Context, status 
 	return
 }
 
-// SendDomainAssociationResultPacketData sends a result of the domain association
-func (k Keeper) SendDomainAssociationResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) error {
-	srcPacket, dstPacket, err := k.CreateDomainAssociationResultPacketData(ctx, status, srcClientDomain, dstClientDomain)
+// SendDomainMappingResultPacketData sends a result of the domain mapping
+func (k Keeper) SendDomainMappingResultPacketData(ctx sdk.Context, status uint32, srcClientDomain, dstClientDomain types.ClientDomain) error {
+	srcPacket, dstPacket, err := k.CreateDomainMappingResultPacketData(ctx, status, srcClientDomain, dstClientDomain)
 	if err != nil {
 		return err
 	}
@@ -232,16 +232,16 @@ func (k Keeper) registerDomain(ctx sdk.Context, domain string, channel types.Loc
 
 func (k Keeper) ensureClientDomainExistence(ctx sdk.Context, srcClientDomain, dstClientDomain types.ClientDomain) (exists bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := servertypes.KeyDomainAssociation(srcClientDomain, dstClientDomain)
+	key := servertypes.KeyDomainMapping(srcClientDomain, dstClientDomain)
 	return store.Has(key)
 }
 
-func (k Keeper) createDomainAssociation(ctx sdk.Context, srcClientDomain, dstClientDomain types.ClientDomain) error {
+func (k Keeper) createDomainMapping(ctx sdk.Context, srcClientDomain, dstClientDomain types.ClientDomain) error {
 	store := ctx.KVStore(k.storeKey)
-	srcKey := servertypes.KeyDomainAssociation(srcClientDomain, dstClientDomain)
+	srcKey := servertypes.KeyDomainMapping(srcClientDomain, dstClientDomain)
 
-	r := servertypes.NewDomainAssociation(
-		servertypes.DomainAssociationStatusConfirmed,
+	r := servertypes.NewDomainMapping(
+		servertypes.DomainMappingStatusConfirmed,
 		srcClientDomain,
 		dstClientDomain,
 	)
@@ -253,20 +253,20 @@ func (k Keeper) createDomainAssociation(ctx sdk.Context, srcClientDomain, dstCli
 	return nil
 }
 
-func (k Keeper) confirmDomainAssociation(ctx sdk.Context, srcClientDomain, dstClientDomain types.ClientDomain) error {
+func (k Keeper) confirmDomainMapping(ctx sdk.Context, srcClientDomain, dstClientDomain types.ClientDomain) error {
 	store := ctx.KVStore(k.storeKey)
-	dstKey := servertypes.KeyDomainAssociation(dstClientDomain, srcClientDomain)
+	dstKey := servertypes.KeyDomainMapping(dstClientDomain, srcClientDomain)
 
-	var da types.DomainAssociation
+	var da types.DomainMapping
 	if err := proto.Unmarshal(store.Get(dstKey), &da); err != nil {
 		return err
 	}
 
-	if da.Status != servertypes.DomainAssociationStatusInit {
+	if da.Status != servertypes.DomainMappingStatusInit {
 		return nil
 	}
 
-	da.Status = servertypes.DomainAssociationStatusConfirmed
+	da.Status = servertypes.DomainMappingStatusConfirmed
 	bz, err := proto.Marshal(&da)
 	if err != nil {
 		return err
