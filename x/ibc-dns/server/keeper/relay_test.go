@@ -1,9 +1,11 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/core/04-channel/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/datachainlab/cosmos-sdk-interchain-dns/x/ibc-dns/common/types"
@@ -58,8 +60,8 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 	p0, err := suite.app1.App.DNSClientKeeper.SendPacketRegisterDomain(
 		suite.app1.GetContext(),
 		app0Name, // already used
-		suite.chA1toD0.Port,
-		suite.chA1toD0.Channel,
+		suite.chA1toD0.PortID,
+		suite.chA1toD0.ID,
 		[]byte("memo"),
 	)
 	require.NoError(err)
@@ -77,7 +79,7 @@ func (suite *DNSKeeperTestSuite) TestDomainRegistration() {
 	))
 	_, found := suite.app1.App.DNSClientKeeper.GetSelfDomainName(
 		suite.app1.GetContext(),
-		types.NewLocalDNSID(suite.chA1toD0.Port, suite.chA1toD0.Channel),
+		types.NewLocalDNSID(suite.chA1toD0.PortID, suite.chA1toD0.ID),
 	)
 	require.False(found)
 }
@@ -96,7 +98,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 
 	/// case0: normal ///
 
-	dnsID0 := types.NewLocalDNSID(suite.chA0toD0.Port, suite.chA0toD0.Channel)
+	dnsID0 := types.NewLocalDNSID(suite.chA0toD0.PortID, suite.chA0toD0.ID)
 
 	// app0: try to create a domain association
 	{
@@ -107,8 +109,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 		)
 		require.NoError(err)
-		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
-		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
+		require.Equal(suite.chA0toD0.PortID, packet.GetSourcePort())
+		require.Equal(suite.chA0toD0.ID, packet.GetSourceChannel())
 		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
@@ -119,7 +121,7 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		require.Equal(ack.Status, servertypes.STATUS_OK)
 	}
 
-	dnsID1 := types.NewLocalDNSID(suite.chA1toD0.Port, suite.chA1toD0.Channel)
+	dnsID1 := types.NewLocalDNSID(suite.chA1toD0.PortID, suite.chA1toD0.ID)
 	// app1: try to confirm the domain association
 	{
 		packet, err := suite.app1.App.DNSClientKeeper.SendDomainAssociationCreatePacketData(
@@ -129,8 +131,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			types.NewClientDomain(app0Name, suite.app1.ChainID),
 		)
 		require.NoError(err)
-		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
-		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
+		require.Equal(suite.chA1toD0.PortID, packet.GetSourcePort())
+		require.Equal(suite.chA1toD0.ID, packet.GetSourceChannel())
 		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
@@ -197,24 +199,24 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		_, found = suite.app0.App.DNSClientKeeper.ResolveChannel(
 			suite.app0.GetContext(),
 			types.NewLocalDomain(dnsID0, app1Name),
-			suite.chA0toA1.Port,
+			suite.chA0toA1.PortID,
 		)
 		require.False(found)
 		require.NoError(suite.app0.App.DNSClientKeeper.SetDomainChannel(
 			suite.app0.GetContext(),
 			dnsID0,
 			app1Name,
-			types.NewChannel(suite.chA0toA1.Port, suite.chA0toA1.Channel, suite.chA1toA0.Port, suite.chA1toA0.Channel),
+			types.NewChannel(suite.chA0toA1.PortID, suite.chA0toA1.ID, suite.chA1toA0.PortID, suite.chA1toA0.ID),
 		))
 
 		// app0: resolve a channel using DNS
 		c0, found := suite.app0.App.DNSClientKeeper.ResolveChannel(
 			suite.app0.GetContext(),
 			types.NewLocalDomain(dnsID0, app1Name),
-			suite.chA0toA1.Port,
+			suite.chA0toA1.PortID,
 		)
 		require.True(found)
-		exc0, found := suite.app0.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app0.GetContext(), suite.chA0toA1.Port, suite.chA0toA1.Channel)
+		exc0, found := suite.app0.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app0.GetContext(), suite.chA0toA1.PortID, suite.chA0toA1.ID)
 		require.True(found)
 		require.Equal(exc0, c0)
 
@@ -222,24 +224,24 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		_, found = suite.app1.App.DNSClientKeeper.ResolveChannel(
 			suite.app1.GetContext(),
 			types.NewLocalDomain(dnsID1, app0Name),
-			suite.chA1toA0.Port,
+			suite.chA1toA0.PortID,
 		)
 		require.False(found)
 		require.NoError(suite.app1.App.DNSClientKeeper.SetDomainChannel(
 			suite.app1.GetContext(),
 			dnsID1,
 			app0Name,
-			types.NewChannel(suite.chA1toA0.Port, suite.chA1toA0.Channel, suite.chA0toA1.Port, suite.chA0toA1.Channel),
+			types.NewChannel(suite.chA1toA0.PortID, suite.chA1toA0.ID, suite.chA0toA1.PortID, suite.chA0toA1.ID),
 		))
 
 		// app1: resolve a channel using DNS
 		c1, found := suite.app1.App.DNSClientKeeper.ResolveChannel(
 			suite.app1.GetContext(),
 			types.NewLocalDomain(dnsID1, app0Name),
-			suite.chA1toA0.Port,
+			suite.chA1toA0.PortID,
 		)
 		require.True(found)
-		exc1, found := suite.app1.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app1.GetContext(), suite.chA1toA0.Port, suite.chA1toA0.Channel)
+		exc1, found := suite.app1.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app1.GetContext(), suite.chA1toA0.PortID, suite.chA1toA0.ID)
 		require.True(found)
 		require.Equal(exc1, c1)
 
@@ -257,10 +259,10 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 	)
 
 	// update channel info
-	err := suite.coordinator.CreateClient(suite.app0, suite.app1, app1ClientID, ibctesting.Tendermint)
+	err := suite.createClient(suite.app0, suite.app1, app1ClientID, ibctesting.Tendermint)
 	require.NoError(err)
-	connA0toA1, connA1toA0 := suite.coordinator.CreateConnection(suite.app0, suite.app1, app1ClientID, suite.app0.ChainID)
-	suite.chA0toA1, suite.chA1toA0 = suite.coordinator.CreateMockChannels(suite.app0, suite.app1, connA0toA1, connA1toA0, channeltypes.UNORDERED)
+	newConnA0toA1, newConnA1toA0 := suite.coordinator.CreateConnection(suite.app0, suite.app1, app1ClientID, suite.app0.ChainID)
+	newChA0toA1, newChA1toA0 := suite.coordinator.CreateMockChannels(suite.app0, suite.app1, newConnA0toA1, newConnA1toA0, channeltypes.UNORDERED)
 
 	// app0: try to create a domain association
 	{
@@ -271,8 +273,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			types.NewClientDomain(app1Name, suite.app0.ChainID),
 		)
 		require.NoError(err)
-		require.Equal(suite.chA0toD0.Port, packet.GetSourcePort())
-		require.Equal(suite.chA0toD0.Channel, packet.GetSourceChannel())
+		require.Equal(suite.chA0toD0.PortID, packet.GetSourcePort())
+		require.Equal(suite.chA0toD0.ID, packet.GetSourceChannel())
 		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
@@ -292,8 +294,8 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 			types.NewClientDomain(app0Name, app1ClientID),
 		)
 		require.NoError(err)
-		require.Equal(suite.chA1toD0.Port, packet.GetSourcePort())
-		require.Equal(suite.chA1toD0.Channel, packet.GetSourceChannel())
+		require.Equal(suite.chA1toD0.PortID, packet.GetSourcePort())
+		require.Equal(suite.chA1toD0.ID, packet.GetSourceChannel())
 		data := types.MustDeserializeJSONPacketData(servertypes.PacketCdc(), packet.GetData()).(*dnsservertypes.DomainAssociationCreatePacketData)
 		ack, completed := suite.dns0.App.DNSServerKeeper.ReceiveDomainAssociationCreatePacketData(
 			suite.dns0.GetContext(),
@@ -361,24 +363,24 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		_, found = suite.app0.App.DNSClientKeeper.ResolveChannel(
 			suite.app0.GetContext(),
 			types.NewLocalDomain(dnsID0, app1Name),
-			suite.chA0toA1.Port,
+			newChA0toA1.PortID,
 		)
 		require.True(found)
 		require.NoError(suite.app0.App.DNSClientKeeper.SetDomainChannel(
 			suite.app0.GetContext(),
 			dnsID0,
 			app1Name,
-			types.NewChannel(suite.chA0toA1.Port, suite.chA0toA1.Channel, suite.chA1toA0.Port, suite.chA1toA0.Channel),
+			types.NewChannel(newChA0toA1.PortID, newChA0toA1.ID, newChA1toA0.PortID, newChA1toA0.ID),
 		))
 
 		// app0: resolve a channel using DNS
 		c0, found := suite.app0.App.DNSClientKeeper.ResolveChannel(
 			suite.app0.GetContext(),
 			types.NewLocalDomain(dnsID0, app1Name),
-			suite.chA0toA1.Port,
+			newChA0toA1.PortID,
 		)
 		require.True(found)
-		exc0, found := suite.app0.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app0.GetContext(), suite.chA0toA1.Port, suite.chA0toA1.Channel)
+		exc0, found := suite.app0.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app0.GetContext(), newChA0toA1.PortID, newChA0toA1.ID)
 		require.True(found)
 		require.Equal(exc0, c0)
 
@@ -387,24 +389,24 @@ func (suite *DNSKeeperTestSuite) TestDomainAssociation() {
 		_, found = suite.app1.App.DNSClientKeeper.ResolveChannel(
 			suite.app1.GetContext(),
 			types.NewLocalDomain(dnsID1, app0Name),
-			suite.chA1toA0.Port,
+			newChA1toA0.PortID,
 		)
 		require.True(found)
 		require.NoError(suite.app1.App.DNSClientKeeper.SetDomainChannel(
 			suite.app1.GetContext(),
 			dnsID1,
 			app0Name,
-			types.NewChannel(suite.chA1toA0.Port, suite.chA1toA0.Channel, suite.chA0toA1.Port, suite.chA0toA1.Channel),
+			types.NewChannel(newChA1toA0.PortID, newChA1toA0.ID, newChA0toA1.PortID, newChA0toA1.ID),
 		))
 
 		// app1: resolve a channel using DNS
 		c1, found := suite.app1.App.DNSClientKeeper.ResolveChannel(
 			suite.app1.GetContext(),
 			types.NewLocalDomain(dnsID1, app0Name),
-			suite.chA1toA0.Port,
+			newChA1toA0.PortID,
 		)
 		require.True(found)
-		exc1, found := suite.app1.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app1.GetContext(), suite.chA1toA0.Port, suite.chA1toA0.Channel)
+		exc1, found := suite.app1.App.IBCKeeper.ChannelKeeper.GetChannel(suite.app1.GetContext(), newChA1toA0.PortID, newChA1toA0.ID)
 		require.True(found)
 		require.Equal(exc1, c1)
 	}
@@ -420,8 +422,8 @@ func (suite *DNSKeeperTestSuite) registerDomain(
 	p0, err := chain.App.DNSClientKeeper.SendPacketRegisterDomain(
 		chain.GetContext(),
 		name,
-		srcch.Port,
-		srcch.Channel,
+		srcch.PortID,
+		srcch.ID,
 		[]byte("memo"),
 	)
 	require.NoError(err)
@@ -438,7 +440,7 @@ func (suite *DNSKeeperTestSuite) registerDomain(
 		*p0,
 	))
 
-	dnsID := types.NewLocalDNSID(srcch.Port, srcch.Channel)
+	dnsID := types.NewLocalDNSID(srcch.PortID, srcch.ID)
 
 	res, err := suite.dns0.App.DNSServerKeeper.QueryDomain(suite.dns0.GetContext(), servertypes.QueryDomainRequest{Name: name})
 	require.NoError(err)
@@ -452,42 +454,99 @@ func (suite *DNSKeeperTestSuite) registerDomain(
 	require.Equal(name, name)
 }
 
+func (suite *DNSKeeperTestSuite) setupClients(
+	chainA, chainB *ibctesting.TestChain,
+	chainAClientID, chainBClientID string,
+	clientType string,
+) (string, string) {
+
+	err := suite.createClient(chainA, chainB, chainAClientID, clientType)
+	require.NoError(suite.T(), err)
+
+	err = suite.createClient(chainB, chainA, chainBClientID, clientType)
+	require.NoError(suite.T(), err)
+
+	return chainAClientID, chainBClientID
+}
+
+func (suite *DNSKeeperTestSuite) setupClientConnections(
+	chainA, chainB *ibctesting.TestChain,
+	chainAClientID, chainBClientID string,
+	clientType string,
+) (string, string, *ibctesting.TestConnection, *ibctesting.TestConnection) {
+
+	clientA, clientB := suite.setupClients(chainA, chainB, chainAClientID, chainBClientID, clientType)
+
+	connA, connB := suite.coordinator.CreateConnection(chainA, chainB, clientA, clientB)
+
+	return clientA, clientB, connA, connB
+}
+
+func (suite *DNSKeeperTestSuite) createClient(
+	source, counterparty *ibctesting.TestChain,
+	clientID string,
+	clientType string,
+) (err error) {
+	suite.coordinator.CommitBlock(source, counterparty)
+
+	switch clientType {
+	case ibctesting.Tendermint:
+		err = source.CreateTMClient(counterparty, clientID)
+
+	default:
+		err = fmt.Errorf("client type %s is not supported", clientType)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	suite.coordinator.IncrementTime()
+
+	return nil
+}
+
 func (suite *DNSKeeperTestSuite) openALLChannels(srcClientID, dstClientID string) {
 	suite.chA0toA1, suite.chA1toA0 = suite.openAppChannels(srcClientID, dstClientID)
 
-	_, _, connA0toD0, connD0toA0 := suite.coordinator.SetupClientConnections(
+	_, _, connA0toD0, connD0toA0 := suite.setupClientConnections(
 		suite.app0,
 		suite.dns0,
 		suite.dns0.ChainID,
 		dstClientID,
 		ibctesting.Tendermint,
 	)
-	suite.chA0toD0, suite.chD0toA0 = suite.coordinator.CreateDNSChannels(
+	suite.dns0.CreatePortCapability(types.PortID)
+	suite.chA0toD0, suite.chD0toA0 = suite.coordinator.CreateChannel(
 		suite.app0,
 		suite.dns0,
 		connA0toD0,
 		connD0toA0,
+		types.PortID,
+		types.PortID,
 		channeltypes.UNORDERED,
 	)
 
-	_, _, connA1toD0, connD0toA1 := suite.coordinator.SetupClientConnections(
+	_, _, connA1toD0, connD0toA1 := suite.setupClientConnections(
 		suite.app1,
 		suite.dns0,
 		suite.dns0.ChainID,
 		srcClientID,
 		ibctesting.Tendermint,
 	)
-	suite.chA1toD0, suite.chD0toA1 = suite.coordinator.CreateDNSChannels(
+	suite.chA1toD0, suite.chD0toA1 = suite.coordinator.CreateChannel(
 		suite.app1,
 		suite.dns0,
 		connA1toD0,
 		connD0toA1,
+		types.PortID,
+		types.PortID,
 		channeltypes.UNORDERED,
 	)
 }
 
 func (suite *DNSKeeperTestSuite) openAppChannels(srcClientID, dstClientID string) (ibctesting.TestChannel, ibctesting.TestChannel) {
-	_, _, connA0toA1, connA1toA0 := suite.coordinator.SetupClientConnections(
+	_, _, connA0toA1, connA1toA0 := suite.setupClientConnections(
 		suite.app0,
 		suite.app1,
 		srcClientID,

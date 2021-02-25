@@ -47,11 +47,9 @@ func NewCoordinator(t *testing.T, n int) *Coordinator {
 // fail if any error occurs. The clientID's, TestConnections, and TestChannels are returned
 // for both chains. The channels created are connected to the ibc-transfer application.
 func (coord *Coordinator) Setup(
-	chainA, chainB *TestChain,
-	srcClientID, dstClientID string,
-	order channeltypes.Order,
+	chainA, chainB *TestChain, order channeltypes.Order,
 ) (string, string, *TestConnection, *TestConnection, TestChannel, TestChannel) {
-	clientA, clientB, connA, connB := coord.SetupClientConnections(chainA, chainB, srcClientID, dstClientID, Tendermint)
+	clientA, clientB, connA, connB := coord.SetupClientConnections(chainA, chainB, Tendermint)
 
 	// channels can also be referenced through the returned connections
 	channelA, channelB := coord.CreateMockChannels(chainA, chainB, connA, connB, order)
@@ -63,27 +61,29 @@ func (coord *Coordinator) Setup(
 // caller does not anticipate any errors.
 func (coord *Coordinator) SetupClients(
 	chainA, chainB *TestChain,
-	srcClientID, dstClientID string,
 	clientType string,
 ) (string, string) {
-	require.NoError(coord.t, coord.CreateClient(chainA, chainB, srcClientID, clientType))
-	require.NoError(coord.t, coord.CreateClient(chainB, chainA, dstClientID, clientType))
 
-	return srcClientID, dstClientID
+	clientA, err := coord.CreateClient(chainA, chainB, clientType)
+	require.NoError(coord.t, err)
+
+	clientB, err := coord.CreateClient(chainB, chainA, clientType)
+	require.NoError(coord.t, err)
+
+	return clientA, clientB
 }
 
 // SetupClientConnections is a helper function to create clients and the appropriate
 // connections on both the source and counterparty chain. It assumes the caller does not
 // anticipate any errors.
 func (coord *Coordinator) SetupClientConnections(
-	srcChain, dstChain *TestChain,
-	srcClientID, dstClientID string,
+	chainA, chainB *TestChain,
 	clientType string,
 ) (string, string, *TestConnection, *TestConnection) {
 
-	clientA, clientB := coord.SetupClients(srcChain, dstChain, srcClientID, dstClientID, clientType)
+	clientA, clientB := coord.SetupClients(chainA, chainB, clientType)
 
-	connA, connB := coord.CreateConnection(srcChain, dstChain, clientA, clientB)
+	connA, connB := coord.CreateConnection(chainA, chainB, clientA, clientB)
 
 	return clientA, clientB, connA, connB
 }
@@ -91,10 +91,11 @@ func (coord *Coordinator) SetupClientConnections(
 // CreateClient creates a counterparty client on the source chain and returns the clientID.
 func (coord *Coordinator) CreateClient(
 	source, counterparty *TestChain,
-	clientID string,
 	clientType string,
-) (err error) {
+) (clientID string, err error) {
 	coord.CommitBlock(source, counterparty)
+
+	clientID = source.NewClientID(counterparty.ChainID)
 
 	switch clientType {
 	case Tendermint:
@@ -105,12 +106,12 @@ func (coord *Coordinator) CreateClient(
 	}
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	coord.IncrementTime()
 
-	return nil
+	return clientID, nil
 }
 
 // UpdateClient updates a counterparty client on the source chain.
@@ -174,15 +175,15 @@ func (coord *Coordinator) CreateMockChannels(
 	return coord.CreateChannel(chainA, chainB, connA, connB, MockPort, MockPort, order)
 }
 
-// CreateDNSChannels constructs and executes channel handshake messages to create OPEN
-// ibc-dns channels on chainA and chainB. The function expects the channels to be
+// CreateTransferChannels constructs and executes channel handshake messages to create OPEN
+// ibc-transfer channels on chainA and chainB. The function expects the channels to be
 // successfully opened otherwise testing will fail.
-func (coord *Coordinator) CreateDNSChannels(
+func (coord *Coordinator) CreateTransferChannels(
 	chainA, chainB *TestChain,
 	connA, connB *TestConnection,
 	order channeltypes.Order,
 ) (TestChannel, TestChannel) {
-	return coord.CreateChannel(chainA, chainB, connA, connB, DNSPort, DNSPort, order)
+	return coord.CreateChannel(chainA, chainB, connA, connB, TransferPort, TransferPort, order)
 }
 
 // CreateChannel constructs and executes channel handshake messages in order to create
@@ -465,7 +466,7 @@ func (coord *Coordinator) ChanOpenInit(
 
 	// NOTE: only creation of a capability for a transfer or mock port is supported
 	// Other applications must bind to the port in InitGenesis or modify this code.
-	source.CreatePortCapability(sourceChannel.Port)
+	source.CreatePortCapability(sourceChannel.PortID)
 	coord.IncrementTime()
 
 	// initialize channel on source
@@ -498,8 +499,8 @@ func (coord *Coordinator) ChanOpenInitOnBothChains(
 
 	// NOTE: only creation of a capability for a transfer or mock port is supported
 	// Other applications must bind to the port in InitGenesis or modify this code.
-	source.CreatePortCapability(sourceChannel.Port)
-	counterparty.CreatePortCapability(counterpartyChannel.Port)
+	source.CreatePortCapability(sourceChannel.PortID)
+	counterparty.CreatePortCapability(counterpartyChannel.PortID)
 	coord.IncrementTime()
 
 	// initialize channel on source
@@ -541,8 +542,6 @@ func (coord *Coordinator) ChanOpenTry(
 	connection *TestConnection,
 	order channeltypes.Order,
 ) error {
-	source.CreatePortCapability(sourceChannel.Port)
-	coord.IncrementTime()
 
 	// initialize channel on source
 	if err := source.ChanOpenTry(counterparty, sourceChannel, counterpartyChannel, order, connection.ID); err != nil {
@@ -582,6 +581,7 @@ func (coord *Coordinator) ChanOpenConfirm(
 	source, counterparty *TestChain,
 	sourceChannel, counterpartyChannel TestChannel,
 ) error {
+
 	if err := source.ChanOpenConfirm(counterparty, sourceChannel, counterpartyChannel); err != nil {
 		return err
 	}
@@ -623,7 +623,7 @@ func (coord *Coordinator) SetChannelClosed(
 	channel := source.GetChannel(testChannel)
 
 	channel.State = channeltypes.CLOSED
-	source.App.IBCKeeper.ChannelKeeper.SetChannel(source.GetContext(), testChannel.Port, testChannel.Channel, channel)
+	source.App.IBCKeeper.ChannelKeeper.SetChannel(source.GetContext(), testChannel.PortID, testChannel.ID, channel)
 
 	coord.CommitBlock(source)
 
